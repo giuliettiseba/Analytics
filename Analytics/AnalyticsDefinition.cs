@@ -29,18 +29,27 @@ namespace Analytics
 
         internal static Guid AnalyticsPluginId = new Guid("5b755dd5-9000-4ecb-ab94-b70cda5a7172");
         internal static Guid AnalyticsKind = new Guid("e652e027-b54a-4962-aaaa-4b5147531996");
-        internal static Guid AnalyticsSidePanel = new Guid("49ca192f-558d-4559-bc69-0fd8e20ecca9");
-        internal static Guid AnalyticsViewItemPlugin = new Guid("8aa71cb5-aacc-4b4d-8b13-8b4c57e0be73");
-        internal static Guid AnalyticsSettingsPanel = new Guid("0754382a-4546-4ae2-89ac-8c442f0a4be6");
+
         internal static Guid AnalyticsBackgroundPlugin = new Guid("5ba60baa-2e8a-42ae-b2b0-5148180e3511");
         internal static Guid AnalyticsWorkSpacePluginId = new Guid("5832af99-e027-477c-b5ed-51459cfb4abf");
         internal static Guid AnalyticsWorkSpaceViewItemPluginId = new Guid("43a615a5-6ca7-4480-8de3-4c094bc3e6b7");
+
+// Remove all ID below this line -------------------------
+        internal static Guid AnalyticsSidePanel = new Guid("49ca192f-558d-4559-bc69-0fd8e20ecca9");
+        internal static Guid AnalyticsViewItemPlugin = new Guid("8aa71cb5-aacc-4b4d-8b13-8b4c57e0be73");
+        internal static Guid AnalyticsSettingsPanel = new Guid("0754382a-4546-4ae2-89ac-8c442f0a4be6");
+        
         internal static Guid AnalyticsTabPluginId = new Guid("5653da75-f5ae-45a4-9b08-b2ca44e6a042");
         internal static Guid AnalyticsViewLayoutId = new Guid("84a65c70-4076-4eab-a87b-3b5ddfe29569");
         // IMPORTANT! Due to shortcoming in Visual Studio template the below cannot be automatically replaced with proper unique GUIDs, so you will have to do it yourself
-        internal static Guid AnalyticsWorkSpaceToolbarPluginId = new Guid("22222222-2222-2222-2222-222222222222");
-        internal static Guid AnalyticsViewItemToolbarPluginId = new Guid("33333333-3333-3333-3333-333333333333");
-        internal static Guid AnalyticsToolsOptionDialogPluginId = new Guid("44444444-4444-4444-4444-444444444444");
+        internal static Guid AnalyticsWorkSpaceToolbarPluginId = new Guid("22222222-2222-2222-2222-159753222222");
+        internal static Guid AnalyticsViewItemToolbarPluginId = new Guid("33333333-3333-3333-3333-159753333333");
+        internal static Guid AnalyticsToolsOptionDialogPluginId = new Guid("44444444-4444-4444-4444-159753444444");
+
+
+        // Filtro para mensajes desde SC Plugin hacia Background
+        internal static string analyticsHeatMapSearchFilterID = "analyticsHeatMapSearch";
+
 
         #region Private fields
 
@@ -95,7 +104,7 @@ namespace Analytics
         public override void Init()
         {
             // Populate all relevant lists with your plugins etc.
-            _itemNodes.Add(new ItemNode(AnalyticsKind, Guid.Empty,
+          /*_itemNodes.Add(new ItemNode(AnalyticsKind, Guid.Empty,
                                          "Analytics", _treeNodeImage,
                                          "Analyticss", _treeNodeImage,
                                          Category.Text, true,
@@ -103,22 +112,25 @@ namespace Analytics
                                          new AnalyticsItemManager(AnalyticsKind),
                                          null
                                          ));
-            if (EnvironmentManager.Instance.EnvironmentType == EnvironmentType.SmartClient)
+    */        
+    if (EnvironmentManager.Instance.EnvironmentType == EnvironmentType.SmartClient)
             {
                 _workSpacePlugins.Add(new AnalyticsWorkSpacePlugin());
-                _sidePanelPlugins.Add(new AnalyticsSidePanelPlugin());
-                _viewItemPlugins.Add(new AnalyticsViewItemPlugin());
                 _viewItemPlugins.Add(new AnalyticsWorkSpaceViewItemPlugin());
-                _viewItemToolbarPlugins.Add(new AnalyticsViewItemToolbarPlugin());
-                _workSpaceToolbarPlugins.Add(new AnalyticsWorkSpaceToolbarPlugin());
-                _settingsPanelPlugins.Add(new AnalyticsSettingsPanelPlugin());
+
+                //   _sidePanelPlugins.Add(new AnalyticsSidePanelPlugin());
+                //   _viewItemPlugins.Add(new AnalyticsViewItemPlugin());
+                //   _viewItemToolbarPlugins.Add(new AnalyticsViewItemToolbarPlugin());
+                //   _workSpaceToolbarPlugins.Add(new AnalyticsWorkSpaceToolbarPlugin());
+                //   _settingsPanelPlugins.Add(new AnalyticsSettingsPanelPlugin());
             }
-            if (EnvironmentManager.Instance.EnvironmentType == EnvironmentType.Administration)
+
+          /*  if (EnvironmentManager.Instance.EnvironmentType == EnvironmentType.Administration)
             {
                 _tabPlugins.Add(new AnalyticsTabPlugin());
                 _toolsOptionsDialogPlugins.Add(new AnalyticsToolsOptionDialogPlugin());
             }
-
+            */
             _backgroundPlugins.Add(new AnalyticsBackgroundPlugin());
         }
 

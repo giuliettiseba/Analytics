@@ -57,7 +57,7 @@ namespace Analytics.Background
             //    MessageCommunicationManager.Start(EnvironmentManager.Instance.MasterSite.ServerId);
             MessageCommunicationManager.Start(EnvironmentManager.Instance.MasterSite.ServerId);
             _messageCommunication = MessageCommunicationManager.Get(EnvironmentManager.Instance.MasterSite.ServerId);
-            _heatmapSearchFilter = _messageCommunication.RegisterCommunicationFilter(HeatMapSearchHandler, new VideoOS.Platform.Messaging.CommunicationIdFilter(analyticsHeatMapSearchFilterID));
+            _heatmapSearchFilter = _messageCommunication.RegisterCommunicationFilter(HeatMapSearchHandler, new VideoOS.Platform.Messaging.CommunicationIdFilter(AnalyticsDefinition.analyticsHeatMapSearchFilterID));
 
 
             _stop = false;
@@ -86,8 +86,7 @@ namespace Analytics.Background
 
 
 
-        public static string analyticsHeatMapSearchFilterID = "analyticsHeatMapSearch";
-
+     
         /// <summary>
         /// the thread doing the work
         /// </summary>

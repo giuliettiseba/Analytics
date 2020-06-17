@@ -17,15 +17,28 @@
                 <ColumnDefinition Width="auto"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
-            <TextBlock Grid.Column="0" x:Name="_headerTextBlock" Margin="0,0,5,0">You are now running:</TextBlock>
+            <TextBlock Grid.Column="0" x:Name="_headerTextBlock" Margin="0,0,5,0"><Run Text="Analytics - HeatMap"/><LineBreak/><Run/></TextBlock>
             <TextBlock Grid.Column="1" x:Name="_nameTextBlock"/>
         </Grid>
-        <DatePicker x:Name="initial" HorizontalAlignment="Left" Margin="115,99,0,0" Grid.Row="1" VerticalAlignment="Top" SelectedDateFormat="Long" Width="228"/>
-        <DatePicker x:Name="end" HorizontalAlignment="Left" Margin="116,184,0,0" Grid.Row="1" VerticalAlignment="Top" Width="227"/>
-        <Label Content="Label" HorizontalAlignment="Left" Margin="72,98,0,0" Grid.Row="1" VerticalAlignment="Top"/>
-        <Label Content="Label" HorizontalAlignment="Left" Margin="72,182,0,0" Grid.Row="1" VerticalAlignment="Top"/>
-        <Button Content="Button" HorizontalAlignment="Left" Margin="157,264,0,0" Grid.Row="1" VerticalAlignment="Top" Width="75" Click="Button_Click_1"/>
-        <Button Content="Seleccionar Camara" HorizontalAlignment="Left" Margin="223,23,0,0" Grid.Row="1" VerticalAlignment="Top" Width="140" Click="Button_Click"/>
-        <Label x:Name="CamaraSeleccionada" Content="..." HorizontalAlignment="Left" Height="31" Margin="10,20,0,0" Grid.Row="1" VerticalAlignment="Top" Width="208"/>
+        <DatePicker x:Name="initial" HorizontalAlignment="Left" Margin="53,55,0,0" Grid.Row="1" VerticalAlignment="Top" SelectedDateFormat="Long" Width="228"/>
+        <DatePicker x:Name="end" HorizontalAlignment="Left" Margin="53,90,0,0" Grid.Row="1" VerticalAlignment="Top" Width="227"/>
+        <Label Content="Label" HorizontalAlignment="Left" Margin="10,53,0,0" Grid.Row="1" VerticalAlignment="Top"/>
+        <Label Content="Label" HorizontalAlignment="Left" Margin="10,88,0,0" Grid.Row="1" VerticalAlignment="Top"/>
+        <Button Content="Search" HorizontalAlignment="Left" Margin="10,119,0,0" Grid.Row="1" VerticalAlignment="Top" Width="271" Click="Button_Click_1"/>
+        <Button x:Name="_selectCameraButton" Content="..." HorizontalAlignment="Left" Margin="53,23,0,0" Grid.Row="1" VerticalAlignment="Top" Width="228" Click="Button_Click"/>
+        <platformclient:ImageViewerWpfControl x:Name="_imageViewerControl" HorizontalAlignment="Left" Height="506" Margin="344,55,0,0" Grid.Row="1" VerticalAlignment="Top" Width="542"/>
+        <platformclient:PlaybackWpfUserControl x:Name="_playbackUserControl" HorizontalAlignment="Left" Height="76" Margin="344,561,0,0" Grid.Row="1" VerticalAlignment="Top" Width="542"/>
+        <ComboBox x:Name="_streamsComboBox" Margin="298,0,536,939" VerticalAlignment="Bottom" SelectionChanged="_streamsComboBox_SelectionChanged" IsEnabled="False" Height="20" Grid.Row="1"/>
+
+
+        <GroupBox x:Name="groupBox2" Header="Playback Controller Properties" Margin="3">
+            <StackPanel>
+                <RadioButton x:Name="_skipRadioButton" Content="Skip Gaps" Margin="3" Checked="_checkAllRadioButtonsChecked" IsChecked="True"/>
+                <RadioButton x:Name="_noSkipRadioButton" Content="No Skip" Margin="3" Checked="_checkAllRadioButtonsChecked"/>
+                <RadioButton x:Name="_stopRadioButton" Content="Stop at Sequence end" Margin="3" Checked="_checkAllRadioButtonsChecked"/>
+            </StackPanel>
+        </GroupBox>
+
+
     </Grid>
 </platformclient:ViewItemWpfUserControl>
