@@ -116,11 +116,13 @@ namespace Analytics.Background
             SearchData data = (message.Data as SearchData);
 
             EnvironmentManager.Instance.Log(false , "Heatmap", message.ToString());
-
             EnvironmentManager.Instance.Log(false, "Camara: ", data.Camera);
             EnvironmentManager.Instance.Log(false, "Camara: ", data.End.ToString());
             EnvironmentManager.Instance.Log(false, "Camara: ", data.Initial.ToString());
-            
+
+            EnvironmentManager.Instance.Log(false, "ITEM: ", data.ItemFQID);
+
+
 
             return null;
         }
@@ -136,5 +138,6 @@ namespace Analytics.Background
         public string Camera { get; set; }
       public DateTime? End  { get; internal set; }
         public DateTime? Initial { get; internal set; }
+        public String ItemFQID { get; internal set; }
     }
 }

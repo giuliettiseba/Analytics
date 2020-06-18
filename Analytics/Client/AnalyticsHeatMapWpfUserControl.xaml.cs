@@ -10,29 +10,43 @@ using System.Windows.Media.Media3D;
 using VideoOS.Platform.Data;
 using System.Collections.Generic;
 using System.Windows.Controls;
+using System.Threading;
+using System.IO;
+using System.Windows.Media.Imaging;
+using System.Drawing;
+using System.Drawing.Imaging;
 
 namespace Analytics.Client
 {
     /// <summary>
-    /// This UserControl contains the visible part of the Property panel during Setup mode. <br/>
-    /// If no properties is required by this ViewItemPlugin, the GeneratePropertiesUserControl() method on the ViewItemManager can return a value of null.
-    /// <br/>
-    /// When changing properties the ViewItemManager should continuously be updated with the changes to ensure correct saving of the changes.
-    /// <br/>
-    /// As the user click on different ViewItem, the displayed property UserControl will be disposed, and a new one created for the newly selected ViewItem.
-    /// </summary>
+    /// This UserControl contains the visible part of the AnalyticsWorkSpaceViewItemPlugin. <br/>
+    /// Este UserControl contiene la parte visible del panel de AnalyticsWorkSpaceViewItemPlugin <br/>
+    /// 
     public partial class AnalyticsHeatMapWpfUserControl : ViewItemWpfUserControl
     {
         #region private fields
 
-
         private MessageCommunication _messageCommunication;
-
-        //  private ImageViewerWpfControl _imageViewerControl;
-        private Item _selectedCameraItem;
         private Item _selectItem;
-
         private FQID _playbackFQID;
+        private bool _updatingStreamsFromCode = false;
+        
+        private TimeLineUserControl timeLineUserControl1;
+        private PlaybackTimeInformationData _currentTimeInformation;
+
+
+        private MyPlayCommand _nextCommand = MyPlayCommand.None;
+        private string _mode = PlaybackPlayModeData.Stop;
+        enum MyPlayCommand
+        {
+            None,
+            Start,
+            End,
+            NextSequence,
+            PrevSequence,
+            NextFrame,
+            PrevFrame
+        }
 
 
         #endregion
@@ -41,33 +55,32 @@ namespace Analytics.Client
 
         /// <summary>
         /// This class is created by the ViewItemManager.  
-        /// </summary>
-        /// <param name="viewItemManager"></param>
         public AnalyticsHeatMapWpfUserControl()
         {
             InitializeComponent();
+            SetupControls();
         }
 
         /// <summary>
-        /// Setup events and message receivers and load stored configuration.
+        /// Initialize the components Controls, listeners and Comunication Manager. 
+        /// 
         /// </summary>
         public override void Init()
         {
-            SetupControls();
-            SetUpApplicationEventListeners();
+            
+           // SetUpApplicationEventListeners();
+            SetUpComunicationManager();
+        }
 
 
+        /// <summary>
+        /// Initialize the Comunication Manager. 
+        /// 
+        /// </summary>
+        private void SetUpComunicationManager()
+        {
             MessageCommunicationManager.Start(EnvironmentManager.Instance.MasterSite.ServerId);
             _messageCommunication = MessageCommunicationManager.Get(EnvironmentManager.Instance.MasterSite.ServerId);
-
-
-
-            //  _imageViewerControl = ClientControl.Instance.(WindowInformation);
-
-
-            //         panel2 = ImageViewerWpfControl();
-            //            panel2.Controls.Add(_imageViewerControl);
-            //          _imageViewerControl.Dock = DockStyle.Fill;
         }
 
         /// <summary>
@@ -75,61 +88,281 @@ namespace Analytics.Client
         /// </summary>
         public override void Close()
         {
-            _imageViewerControl.Disconnect();
-            _imageViewerControl.Close();
-            _imageViewerControl.Dispose();
-            if (_playbackFQID != null)
-            {
-                ClientControl.Instance.ReleasePlaybackController(_playbackFQID);
-                _playbackFQID = null;
-            }
+            _stop = true;
+            _messageCommunication.Dispose();
         }
-        #endregion
 
         private void SetUpApplicationEventListeners()
         {
             //set up ViewItem event listeners
-
         }
 
-
-
-        #region Select camera and setup controls
         private void SetupControls()
         {
-            _imageViewerControl.Disconnect();
+            this.timeLineUserControl1 = new TimeLineUserControl();
 
-            _imageViewerControl.EnableDigitalZoom = true;
-            _imageViewerControl.MaintainImageAspectRatio = true;
-            _imageViewerControl.EnableVisibleHeader = true;
-            _imageViewerControl.EnableVisibleCameraName = true;
-            _imageViewerControl.EnableVisibleLiveIndicator = true;
-            _imageViewerControl.EnableVisibleTimestamp = true;
+            //// In this sample we create a specific PlaybackController.
+            //// All commands to this controller needs to be sent via messages with the destination as _playbackFQID.
+            //// All message Indications coming from this controller will have sender as _playbackController.
+            _playbackFQID = ClientControl.Instance.GeneratePlaybackController();
+            //EnvironmentManager.Instance.RegisterReceiver(PlaybackTimeChangedHandler,
+            //                                 new MessageIdFilter(MessageId.SmartClient.PlaybackCurrentTimeIndication));
+            _fetchThread = new Thread(JPEGFetchThread);
+            _fetchThread.Start();
 
-            if (_playbackFQID == null)
-            {
-                _playbackFQID = ClientControl.Instance.GeneratePlaybackController();
-                _playbackUserControl.Init(_playbackFQID);
-                SetPlaybackSkipMode();
-            }
 
         }
+        private Item _selectedItem;
+        JPEGVideoSource _jpegVideoSource = null;
+        private DateTime _currentShownTime = DateTime.MinValue;
+        /// <summary>
+        /// All calls to the Media Toolkit is done through the JPEGVideoSource within this thread.
+        /// </summary>
+        private bool _stop;
+        private Thread _fetchThread;
+        private DateTime _nextToFetchTime = DateTime.MinValue;
+        private bool _requestInProgress = false;
+        private bool _performCloseVideoSource = false;
+        private int _newHeight = 0;
+        private int _newWidth = 0;
+        private bool _setNewResolution = false;
 
 
+        private void JPEGFetchThread()
+        {
+            ShowError("JPEGFetchThread. Start.");
+            bool errorRecovery = false;
+          //  int i = 0;
+            while (!_stop)
+            {
+            //    i++;
+            //    ShowError(i.ToString());
+                if (_performCloseVideoSource)
+                {
+                    if (_jpegVideoSource != null)
+                    {
+                        _jpegVideoSource.Close();
+                        _jpegVideoSource = null;
+                    }
+                    _performCloseVideoSource = false;
+                }
+
+                if (_selectItem != null)
+                {
+                    _selectedItem = _selectItem;
+                    _jpegVideoSource = new JPEGVideoSource(_selectedItem);
+                    //if (checkBoxAspect.Checked)
+                    //{
+                    //    // Keeping aspect ratio can only work when the Media Toolkit knows the actual displayed area
+                    //    _jpegVideoSource.Width = pictureBox.Width;
+                    //    _jpegVideoSource.Height = pictureBox.Height;
+                    //    _jpegVideoSource.SetKeepAspectRatio(checkBoxAspect.Checked, checkBoxFill.Checked);  // Must be done before Init
+                    //}
+                    try
+                    {
+                        _jpegVideoSource.Init();
+                        JPEGData jpegData = _currentShownTime == DateTime.MinValue ? _jpegVideoSource.GetBegin() : _jpegVideoSource.GetAtOrBefore(_currentShownTime) as JPEGData;
+                        if (jpegData != null)
+                        {
+                            _requestInProgress = true;
+                            ShowJPEG(jpegData);
+                        }
+                        else
+                        {
+                            ShowError("");      // Clear any error messages
+                        }
+                       // _selectItem = null;
+                        errorRecovery = false;
+                    }
+                    catch (Exception ex)
+                    {
+                        if (ex is CommunicationMIPException)
+                        {
+                            ShowError("Connection lost to server ...");
+                        }
+                        else
+                        {
+                            ShowError(ex.Message);
+                        }
+                        errorRecovery = true;
+                        _jpegVideoSource = null;
+                        _selectItem = _selectedItem;     // Redo the Initialization
+                    }
+                }
+
+                if (errorRecovery)
+                {
+                    Thread.Sleep(3000);
+                    continue;
+                }
+
+                if (_setNewResolution && _jpegVideoSource != null && _requestInProgress == false)
+                {
+                    try
+                    {
+                        _jpegVideoSource.Width = _newWidth;
+                        _jpegVideoSource.Height = _newHeight;
+                        _jpegVideoSource.SetWidthHeight();
+                        _setNewResolution = false;
+                        JPEGData jpegData;
+                        jpegData = _jpegVideoSource.GetAtOrBefore(_currentShownTime) as JPEGData;
+                        if (jpegData != null)
+                        {
+                            _requestInProgress = true;
+                            _currentShownTime = DateTime.MinValue;
+                            ShowJPEG(jpegData);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        if (ex is CommunicationMIPException)
+                            ShowError("Connection lost to recorder...");
+                        else
+                            ShowError(ex.Message);
+                        errorRecovery = true;
+                        _jpegVideoSource = null;
+                        _selectItem = _selectedItem;     // Redo the Initialization
+                    }
+                }
+
+                if (_requestInProgress == false && _jpegVideoSource != null && _nextCommand != MyPlayCommand.None)
+                {
+                    JPEGData jpegData = null;
+                    try
+                    {
+                        switch (_nextCommand)
+                        {
+                            case MyPlayCommand.Start:
+                                jpegData = _jpegVideoSource.GetBegin();
+                                break;
+                            case MyPlayCommand.NextFrame:
+                                jpegData = _jpegVideoSource.GetNext() as JPEGData;
+                                break;
+                            case MyPlayCommand.NextSequence:
+                                jpegData = _jpegVideoSource.GetNextSequence();
+                                break;
+                            case MyPlayCommand.PrevFrame:
+                                jpegData = _jpegVideoSource.GetPrevious();
+                                break;
+                            case MyPlayCommand.PrevSequence:
+                                jpegData = _jpegVideoSource.GetPreviousSequence();
+                                break;
+                            case MyPlayCommand.End:
+                                jpegData = _jpegVideoSource.GetEnd();
+                                break;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        if (ex is CommunicationMIPException)
+                            ShowError("Connection lost to recorder...");
+                        else
+                            ShowError(ex.Message);
+                        errorRecovery = true;
+                        _jpegVideoSource = null;
+                        _selectItem = _selectedItem;     // Redo the Initialization
+                    }
+                    if (jpegData != null)
+                    {
+                        _requestInProgress = true;
+                        ShowJPEG(jpegData);
+                    }
+
+                    _nextCommand = MyPlayCommand.None;
+                }
+
+                if (_nextToFetchTime != DateTime.MinValue && _requestInProgress == false && _jpegVideoSource != null)
+                {
+                    bool willResultInSameFrame = false;
+                    // Lets validate if we are just asking for the same frame
+                    if (_currentTimeInformation != null)
+                    {
+                        if (_currentTimeInformation.PreviousTime < _nextToFetchTime &&
+                            _currentTimeInformation.NextTime > _nextToFetchTime)
+                            willResultInSameFrame = true;
+                    }
+                    if (willResultInSameFrame)
+                    {
+                        System.Console.WriteLine("Now Fetch ignored: " + _nextToFetchTime.ToLongTimeString() + " - nextToFetch=" + _nextToFetchTime.ToLongTimeString());
+                        // Same frame -> Ignore request
+                        _requestInProgress = false;
+                        _nextToFetchTime = DateTime.MinValue;
+                    }
+                    else
+                    {
+                        System.Console.WriteLine("Now Fetch: " + _nextToFetchTime.ToLongTimeString());
+                        DateTime time = _nextToFetchTime;
+                        _nextToFetchTime = DateTime.MinValue;
+
+                        try
+                        {
+                            DateTime localTime = time.Kind == DateTimeKind.Local ? time : time.ToLocalTime();
+                            DateTime utcTime = time.Kind == DateTimeKind.Local ? time.ToUniversalTime() : time;
+                            
+                            Dispatcher.BeginInvoke(
+                                new Action(delegate () { textBoxAsked.Text = localTime.ToString("yyyy-MM-dd HH:mm:ss.fff"); }));
+
+                            JPEGData jpegData;
+                            jpegData = _jpegVideoSource.GetAtOrBefore(utcTime) as JPEGData;
+                            if (jpegData == null && _mode == PlaybackPlayModeData.Stop)
+                            {
+                                jpegData = _jpegVideoSource.GetNearest(utcTime) as JPEGData;
+                            }
+
+                            if (_mode == PlaybackPlayModeData.Reverse)
+                            {
+                                while (jpegData != null && jpegData.DateTime > utcTime)
+                                    jpegData = _jpegVideoSource.GetPrevious();
+                            }
+                            else if (_mode == PlaybackPlayModeData.Forward)
+                            {
+                                if (jpegData != null && jpegData.DateTime < utcTime)
+                                {
+                                    jpegData = _jpegVideoSource.Get(utcTime) as JPEGData;
+                                }
+                            }
+                            if (jpegData != null)
+                            {
+                                _requestInProgress = true;
+                                ShowJPEG(jpegData);
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            if (ex is CommunicationMIPException)
+                            {
+                                ShowError("Connection lost to server ...");
+                            }
+                            else
+                            {
+                                ShowError(ex.Message);
+                            }
+                            errorRecovery = true;
+                            _jpegVideoSource = null;
+                            _selectItem = _selectedItem;     // Redo the Initialization
+                        }
+                    }
+                }
+                Thread.Sleep(5);
+            }
+            _fetchThread = null;
+        }
+
+        private object PlaybackTimeChangedHandler(Message message, FQID destination, FQID sender)
+        {
+            throw new NotImplementedException();
+        }
         #endregion
 
-        #region Event handling
+
+        #region Button Actions
         private void Button_Click_1(object sender, RoutedEventArgs e)
         {
-
-
             SearchData data = new SearchData();
-            data.Camera = _selectedCameraItem.Name as string;
+            data.Camera = _selectItem.Name as string;
+            data.ItemFQID = _selectItem.FQID.ToString();
             data.Initial = initial.SelectedDate;
             data.End = end.SelectedDate;
-
-
-
 
             try
             {
@@ -141,17 +374,8 @@ namespace Analytics.Client
                 MessageBox.Show("error");
             }
 
-
-
         }
-        #endregion
 
-
-        private bool _updatingStreamsFromCode = false;
-        private IList<DataType> _streams;
-
-
-        #region Button Actions
         private void Button_Click(object sender, RoutedEventArgs e)
         {
             ItemPickerForm cameraPiker = new ItemPickerForm();
@@ -160,119 +384,162 @@ namespace Analytics.Client
 
             if (cameraPiker.ShowDialog() == System.Windows.Forms.DialogResult.OK)
             {
-
-                /*
-                                _updatingStreamsFromCode = true;
-
-                                var streamDataSource = new StreamDataSource(_selectItem);
-                                _streams = streamDataSource.GetTypes();
-                                _streamsComboBox.ItemsSource = _streams;
-                                foreach (DataType stream in _streamsComboBox.Items)
-                                {
-                                    if (stream.Properties.ContainsKey("Default"))
-                                    {
-                                        if (stream.Properties["Default"] == "Yes")
-                                        {
-                                            _streamsComboBox.SelectedItem = stream;
-                                        }
-                                    }
-                                }
-                                _updatingStreamsFromCode = false;
-                                */
+                _selectItem = cameraPiker.SelectedItem;
 
                 try
                 {
-                    _selectItem = cameraPiker.SelectedItem;
-                    _selectCameraButton.Content = _selectItem.Name;
-                    _playbackUserControl.SetCameras(new List<FQID>() { _selectItem.FQID });
-                    _imageViewerControl.CameraFQID = _selectItem.FQID;
-                    _imageViewerControl.PlaybackControllerFQID = _playbackFQID;
+                    ShowError(_selectItem.Name);
 
+                    _selectCameraButton.Content = _selectItem.Name;                    
+					timeLineUserControl1.Item = _selectItem;
+                    timeLineUserControl1.CurrentTime = DateTime.Now;
+					//timeLineUserControl1.MouseSetTimeEvent += new EventHandler(timeLineUserControl1_MouseSetTimeEvent);                    
+					//checkBoxAspect.Enabled = false;
+					//checkBoxFill.Enabled = false;
 
-                    if (_streamsComboBox.SelectedItem != null)
+                    var list = _selectItem.GetDataSource().GetTypes();
+                    foreach (DataType dt in list)
                     {
-                        _imageViewerControl.StreamId = ((DataType)_streamsComboBox.SelectedItem).Id;
+                        System.Diagnostics.Trace.WriteLine("Datasource " + dt.Id + "  " + dt.Name);
                     }
-                    _imageViewerControl.Initialize();
-                    _imageViewerControl.Connect();
                 }
                 catch (Exception r )
                 {
 
                     MessageBox.Show(r.Message);
                 }
-
-            
-
-
             }
         }
 
 
+      
+        #endregion
 
-        private void _streamsComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+
+        #region ShowJPEG
+
+        private delegate void ShowJpegDelegate(JPEGData jpegData);
+
+        private void ShowJPEG(JPEGData jpegData)
         {
-            if (!_updatingStreamsFromCode && _imageViewerControl != null && _imageViewerControl.CameraFQID != null && _streamsComboBox.SelectedItem != null)
+            if (!this.Dispatcher.CheckAccess())
             {
-                _imageViewerControl.Disconnect();
-                DataType selectStream = (DataType)_streamsComboBox.SelectedItem;
+                Dispatcher.BeginInvoke(new ShowJpegDelegate(ShowJPEG), jpegData);
+            }
+            else
+            {
+                System.Console.WriteLine("ShowJPEG imagetime:" + jpegData.DateTime.ToLocalTime());
+                System.Console.WriteLine("ShowJPEG imagetime:" + jpegData.DateTime.ToLocalTime() + ", Decoding:" + jpegData.HardwareDecodingStatus);
+                if (jpegData.DateTime != _currentShownTime && _selectedItem != null)
+                {
+                    MemoryStream ms = new MemoryStream(jpegData.Bytes);
+                    Bitmap newBitmap = new Bitmap(ms);
 
-                _imageViewerControl.StreamId = selectStream.Id;
-                _imageViewerControl.Connect();
+
+                    if (newBitmap.Width != pictureBox.Width || newBitmap.Height != pictureBox.Height)
+                    {
+                        
+                        pictureBox.Source = ConverBitmapToBitmapImage(newBitmap);
+
+
+
+                    }
+                    else
+                    {
+                        pictureBox.Source = ConverBitmapToBitmapImage(newBitmap);
+                    }
+
+                    if (jpegData.CroppingDefined)
+                    {
+                        System.Console.WriteLine("Image has been cropped: " + jpegData.CropWidth + "x" + jpegData.CropHeight);
+                    }
+
+                    ms.Close();
+                    ms.Dispose();
+
+                    textBoxTime.Text = jpegData.DateTime.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss.fff");
+
+                    // Inform the PlybackController of the time information - so skipping can be done correctly
+                    _currentTimeInformation = new PlaybackTimeInformationData()
+                    {
+                        Item = _selectedItem.FQID,
+                        CurrentTime = jpegData.DateTime,
+                        NextTime = jpegData.NextDateTime,
+                        PreviousTime = jpegData.PreviousDateTime
+                    };
+                    EnvironmentManager.Instance.SendMessage(
+                        new VideoOS.Platform.Messaging.Message(MessageId.SmartClient.PlaybackTimeInformation, _currentTimeInformation), _playbackFQID);
+
+                    _currentShownTime = jpegData.DateTime;
+                    if (_mode == PlaybackPlayModeData.Stop)
+                    {
+                        // When playback is stopped, we move the time to where the user have scrolled, or if the user pressed 
+                        // one of the navigation buttons (Next..., Prev...)
+                        EnvironmentManager.Instance.SendMessage(new VideoOS.Platform.Messaging.Message(MessageId.SmartClient.PlaybackCommand,
+                                                                new PlaybackCommandData()
+                                                                {
+                                                                    Command = PlaybackData.Goto,
+                                                                    DateTime = jpegData.DateTime
+                                                                }),
+                                                                    _playbackFQID);
+                    }
+                    System.Console.WriteLine("Image time: " + jpegData.DateTime.ToLocalTime().ToString("HH.mm.ss.fff") + ", Mode=" + _mode);
+                }
+                _requestInProgress = false;
+
             }
         }
 
+        /// <summary>
+        /// New code as from MIPSDK 4.0 - to handle connection issues
+        /// </summary>
+        /// <param name="errorText"></param>
+        private delegate void ShowErrorDelegate(String errorText);
+        private void ShowError(String errorText)
+        {
+            if (!this.Dispatcher.CheckAccess())
+            {
+                Dispatcher.BeginInvoke(new ShowErrorDelegate(ShowError), errorText);
+            }
+            else
+            {
+                   Font font = new Font("Arial", 20);
+
+                   Bitmap bitmap = new Bitmap(640, 480);
+                   Graphics g = Graphics.FromImage(bitmap);
+                   g.FillRectangle(Brushes.Black, 0, 0, bitmap.Width, bitmap.Height);
+                   
+                   g.DrawString(errorText, font, Brushes.White, new PointF(20, 100));
+                   g.Dispose();
+                   pictureBox.Source = ConverBitmapToBitmapImage(bitmap);
+                   bitmap.Dispose();
+            }
+        }
 
 
         #endregion
 
 
-
-        #region helper method
-        private void SetPlaybackSkipMode()
+        private BitmapImage ConverBitmapToBitmapImage(System.Drawing.Bitmap bmp)
         {
-            if (_skipRadioButton.IsChecked.Value)
-            {
-                EnvironmentManager.Instance.SendMessage(new VideoOS.Platform.Messaging.Message(
-                                                                VideoOS.Platform.Messaging.MessageId.SmartClient.PlaybackSkipModeCommand,
-                                                                PlaybackSkipModeData.Skip), _playbackFQID);
-            }
-            else if (_noSkipRadioButton.IsChecked.Value)
-            {
-                EnvironmentManager.Instance.SendMessage(new VideoOS.Platform.Messaging.Message(
-                                                                             VideoOS.Platform.Messaging.MessageId.SmartClient.PlaybackSkipModeCommand,
-                                                                             PlaybackSkipModeData.Noskip), _playbackFQID);
-            }
-            else if (_stopRadioButton.IsChecked.Value)
-            {
-                EnvironmentManager.Instance.SendMessage(new VideoOS.Platform.Messaging.Message(
-                                                                             VideoOS.Platform.Messaging.MessageId.SmartClient.PlaybackSkipModeCommand,
-                                                                             PlaybackSkipModeData.StopAtSequenceEnd), _playbackFQID);
-            }
+            MemoryStream stream = new MemoryStream();
+            bmp.Save(stream, ImageFormat.Png);
+            BitmapImage bitmapImage = new BitmapImage();
+            bitmapImage.BeginInit();
+            bitmapImage.StreamSource = stream;
+            bitmapImage.EndInit();
+            return bitmapImage;
         }
 
-
-
-
-        #region Plackback Controller properties
-        private void _checkAllRadioButtonsChecked(object sender, RoutedEventArgs e)
+        private void Button_Click_2(object sender, RoutedEventArgs e)
         {
-            SetPlaybackSkipMode();
+            _nextCommand = MyPlayCommand.PrevFrame;
         }
-        #endregion
 
-
-
-
-
-
-
-
-
-
-        #endregion
-
-
+        private void Button_Click_3(object sender, RoutedEventArgs e)
+        {
+            _nextCommand = MyPlayCommand.NextFrame;
+        }
 
 
     }

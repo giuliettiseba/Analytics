@@ -216,6 +216,6 @@
   </Target>
   -->
   <PropertyGroup>
-    <PostBuildEvent>xcopy "$(Targetdir)Analytics.dll" "C:\Program Files\Milestone\MIPPlugins\Efip" /y</PostBuildEvent>
+    <PostBuildEvent>xcopy "$(Targetdir)Analytics.dll" "C:\Program Files\Milestone\MIPPlugins\Analytics" /y</PostBuildEvent>
   </PropertyGroup>
 </Project>
