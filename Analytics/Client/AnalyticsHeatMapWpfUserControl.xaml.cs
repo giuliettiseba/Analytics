@@ -6,15 +6,13 @@ using VideoOS.Platform;
 using VideoOS.Platform.Messaging;
 using VideoOS.Platform.UI;
 using Analytics.Background;
-using System.Windows.Media.Media3D;
 using VideoOS.Platform.Data;
-using System.Collections.Generic;
-using System.Windows.Controls;
 using System.Threading;
 using System.IO;
 using System.Windows.Media.Imaging;
 using System.Drawing;
 using System.Drawing.Imaging;
+
 
 namespace Analytics.Client
 {
@@ -30,7 +28,7 @@ namespace Analytics.Client
         private Item _selectItem;
         private FQID _playbackFQID;
         private bool _updatingStreamsFromCode = false;
-        
+
         private TimeLineUserControl timeLineUserControl1;
         private PlaybackTimeInformationData _currentTimeInformation;
 
@@ -67,8 +65,8 @@ namespace Analytics.Client
         /// </summary>
         public override void Init()
         {
-            
-           // SetUpApplicationEventListeners();
+
+            // SetUpApplicationEventListeners();
             SetUpComunicationManager();
         }
 
@@ -99,14 +97,16 @@ namespace Analytics.Client
 
         private void SetupControls()
         {
+
+            _analyticsProcess = new AnalyticsProcess();
             this.timeLineUserControl1 = new TimeLineUserControl();
 
             //// In this sample we create a specific PlaybackController.
             //// All commands to this controller needs to be sent via messages with the destination as _playbackFQID.
             //// All message Indications coming from this controller will have sender as _playbackController.
             _playbackFQID = ClientControl.Instance.GeneratePlaybackController();
-            //EnvironmentManager.Instance.RegisterReceiver(PlaybackTimeChangedHandler,
-            //                                 new MessageIdFilter(MessageId.SmartClient.PlaybackCurrentTimeIndication));
+            EnvironmentManager.Instance.RegisterReceiver(PlaybackTimeChangedHandler,
+                                             new MessageIdFilter(MessageId.SmartClient.PlaybackCurrentTimeIndication));
             _fetchThread = new Thread(JPEGFetchThread);
             _fetchThread.Start();
 
@@ -132,11 +132,8 @@ namespace Analytics.Client
         {
             ShowError("JPEGFetchThread. Start.");
             bool errorRecovery = false;
-          //  int i = 0;
             while (!_stop)
             {
-            //    i++;
-            //    ShowError(i.ToString());
                 if (_performCloseVideoSource)
                 {
                     if (_jpegVideoSource != null)
@@ -171,7 +168,7 @@ namespace Analytics.Client
                         {
                             ShowError("");      // Clear any error messages
                         }
-                       // _selectItem = null;
+                        // _selectItem = null;
                         errorRecovery = false;
                     }
                     catch (Exception ex)
@@ -182,7 +179,7 @@ namespace Analytics.Client
                         }
                         else
                         {
-                            ShowError(ex.Message);
+                            ShowError(ex.ToString());
                         }
                         errorRecovery = true;
                         _jpegVideoSource = null;
@@ -225,9 +222,11 @@ namespace Analytics.Client
                     }
                 }
 
+
                 if (_requestInProgress == false && _jpegVideoSource != null && _nextCommand != MyPlayCommand.None)
                 {
                     JPEGData jpegData = null;
+
                     try
                     {
                         switch (_nextCommand)
@@ -283,14 +282,14 @@ namespace Analytics.Client
                     }
                     if (willResultInSameFrame)
                     {
-                        System.Console.WriteLine("Now Fetch ignored: " + _nextToFetchTime.ToLongTimeString() + " - nextToFetch=" + _nextToFetchTime.ToLongTimeString());
+                        //   showmessage("Now Fetch ignored: " + _nextToFetchTime.ToLongTimeString() + " - nextToFetch=" + _nextToFetchTime.ToLongTimeString());
                         // Same frame -> Ignore request
                         _requestInProgress = false;
                         _nextToFetchTime = DateTime.MinValue;
                     }
                     else
                     {
-                        System.Console.WriteLine("Now Fetch: " + _nextToFetchTime.ToLongTimeString());
+                        //showmessage("Now Fetch: " + _nextToFetchTime.ToLongTimeString());
                         DateTime time = _nextToFetchTime;
                         _nextToFetchTime = DateTime.MinValue;
 
@@ -298,10 +297,12 @@ namespace Analytics.Client
                         {
                             DateTime localTime = time.Kind == DateTimeKind.Local ? time : time.ToLocalTime();
                             DateTime utcTime = time.Kind == DateTimeKind.Local ? time.ToUniversalTime() : time;
-                            
-                            Dispatcher.BeginInvoke(
-                                new Action(delegate () { textBoxAsked.Text = localTime.ToString("yyyy-MM-dd HH:mm:ss.fff"); }));
 
+
+
+                            /*Dispatcher.BeginInvoke(
+                                new Action(delegate () { textBoxAsked.Text = localTime.ToString("yyyy-MM-dd HH:mm:ss.fff"); }));
+                            */
                             JPEGData jpegData;
                             jpegData = _jpegVideoSource.GetAtOrBefore(utcTime) as JPEGData;
                             if (jpegData == null && _mode == PlaybackPlayModeData.Stop)
@@ -350,8 +351,31 @@ namespace Analytics.Client
 
         private object PlaybackTimeChangedHandler(Message message, FQID destination, FQID sender)
         {
-            throw new NotImplementedException();
+            // Only pick up messages coming from my own PlaybackController (sender is null for the common PlaybackController)
+            if (_playbackFQID.EqualGuids(sender))
+            {
+                DateTime time = (DateTime)message.Data;
+                //Debug.WriteLine("PlaybackTimeChangedHandler: " + time.ToLongTimeString());
+
+                TimeChangedHandler(time);
+
+                //  timeLineUserControl1.SetShowTime(time);
+            }
+            return null;
         }
+
+
+
+        private void TimeChangedHandler(DateTime time)
+        {
+            if (_currentShownTime != time)
+            {
+                _nextToFetchTime = time;
+                //Debug.WriteLine("TimeChangedHandler: " + _nextToFetchTime.ToLongTimeString());
+            }
+        }
+
+
         #endregion
 
 
@@ -390,12 +414,12 @@ namespace Analytics.Client
                 {
                     ShowError(_selectItem.Name);
 
-                    _selectCameraButton.Content = _selectItem.Name;                    
-					timeLineUserControl1.Item = _selectItem;
+                    _selectCameraButton.Content = _selectItem.Name;
+                    timeLineUserControl1.Item = _selectItem;
                     timeLineUserControl1.CurrentTime = DateTime.Now;
-					//timeLineUserControl1.MouseSetTimeEvent += new EventHandler(timeLineUserControl1_MouseSetTimeEvent);                    
-					//checkBoxAspect.Enabled = false;
-					//checkBoxFill.Enabled = false;
+                    //timeLineUserControl1.MouseSetTimeEvent += new EventHandler(timeLineUserControl1_MouseSetTimeEvent);                    
+                    //checkBoxAspect.Enabled = false;
+                    //checkBoxFill.Enabled = false;
 
                     var list = _selectItem.GetDataSource().GetTypes();
                     foreach (DataType dt in list)
@@ -403,7 +427,7 @@ namespace Analytics.Client
                         System.Diagnostics.Trace.WriteLine("Datasource " + dt.Id + "  " + dt.Name);
                     }
                 }
-                catch (Exception r )
+                catch (Exception r)
                 {
 
                     MessageBox.Show(r.Message);
@@ -412,37 +436,47 @@ namespace Analytics.Client
         }
 
 
-      
+
         #endregion
+
 
 
         #region ShowJPEG
 
-        private delegate void ShowJpegDelegate(JPEGData jpegData);
+        // private delegate void ShowJpegDelegate(JPEGData jpegData);
 
         private void ShowJPEG(JPEGData jpegData)
         {
-            if (!this.Dispatcher.CheckAccess())
+            /// RETRABAJAR EL DISPATCHER EN EL BACKGROUNG<
+            /*  if (!this.Dispatcher.CheckAccess())
+              {
+                  showmessage("1");
+                  Dispatcher.BeginInvoke(new ShowJpegDelegate(ShowJPEG), jpegData);
+              }
+              else*/
+
+            this.Dispatcher.Invoke(() =>
+
+
             {
-                Dispatcher.BeginInvoke(new ShowJpegDelegate(ShowJPEG), jpegData);
-            }
-            else
-            {
-                System.Console.WriteLine("ShowJPEG imagetime:" + jpegData.DateTime.ToLocalTime());
-                System.Console.WriteLine("ShowJPEG imagetime:" + jpegData.DateTime.ToLocalTime() + ", Decoding:" + jpegData.HardwareDecodingStatus);
+                //                showmessage("ShowJPEG imagetime:" + jpegData.DateTime.ToLocalTime());
+                //               showmessage("ShowJPEG imagetime:" + jpegData.DateTime.ToLocalTime() + ", Decoding:" + jpegData.HardwareDecodingStatus);
                 if (jpegData.DateTime != _currentShownTime && _selectedItem != null)
                 {
+                    //showmessage("2");
                     MemoryStream ms = new MemoryStream(jpegData.Bytes);
-                    Bitmap newBitmap = new Bitmap(ms);
+                    Bitmap newBitmap_original = new Bitmap(ms);
+
+                    pictureBoxOriginal.Source = ConverBitmapToBitmapImage(newBitmap_original);
+
+                    //*** HERE IS WHERE MAGIC IS MADE
+                    Bitmap newBitmap = _analyticsProcess.ProcessImage(newBitmap_original);
 
 
                     if (newBitmap.Width != pictureBox.Width || newBitmap.Height != pictureBox.Height)
                     {
-                        
+
                         pictureBox.Source = ConverBitmapToBitmapImage(newBitmap);
-
-
-
                     }
                     else
                     {
@@ -473,6 +507,7 @@ namespace Analytics.Client
                     _currentShownTime = jpegData.DateTime;
                     if (_mode == PlaybackPlayModeData.Stop)
                     {
+                        //showmessage("3");
                         // When playback is stopped, we move the time to where the user have scrolled, or if the user pressed 
                         // one of the navigation buttons (Next..., Prev...)
                         EnvironmentManager.Instance.SendMessage(new VideoOS.Platform.Messaging.Message(MessageId.SmartClient.PlaybackCommand,
@@ -487,8 +522,12 @@ namespace Analytics.Client
                 }
                 _requestInProgress = false;
 
-            }
+            });
         }
+
+
+
+  
 
         /// <summary>
         /// New code as from MIPSDK 4.0 - to handle connection issues
@@ -503,21 +542,32 @@ namespace Analytics.Client
             }
             else
             {
-                   Font font = new Font("Arial", 20);
+                Font font = new Font("Arial", 12);
 
-                   Bitmap bitmap = new Bitmap(640, 480);
-                   Graphics g = Graphics.FromImage(bitmap);
-                   g.FillRectangle(Brushes.Black, 0, 0, bitmap.Width, bitmap.Height);
-                   
-                   g.DrawString(errorText, font, Brushes.White, new PointF(20, 100));
-                   g.Dispose();
-                   pictureBox.Source = ConverBitmapToBitmapImage(bitmap);
-                   bitmap.Dispose();
+                Bitmap bitmap = new Bitmap(800, 600);
+                Graphics g = Graphics.FromImage(bitmap);
+                g.FillRectangle(Brushes.Black, 0, 0, bitmap.Width, bitmap.Height);
+
+                g.DrawString(errorText, font, Brushes.White, new PointF(5, 5));
+                g.Dispose();
+                pictureBox.Source = ConverBitmapToBitmapImage(bitmap);
+                bitmap.Dispose();
             }
         }
 
 
         #endregion
+
+
+        ///// My best friend 
+
+        private void showmessage(string message)
+        {
+            this.Dispatcher.Invoke(() =>
+                            {
+                                textConsole.Text += message;
+                            });
+        }
 
 
         private BitmapImage ConverBitmapToBitmapImage(System.Drawing.Bitmap bmp)
@@ -541,6 +591,36 @@ namespace Analytics.Client
             _nextCommand = MyPlayCommand.NextFrame;
         }
 
+        private void DBstart_Click(object sender, RoutedEventArgs e)
+        {
+            _nextCommand = MyPlayCommand.Start;
+        }
 
+
+        private double _speed = 1.0;
+        private AnalyticsProcess _analyticsProcess ;
+
+        private void PlayButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (_speed == 0.0)
+                _speed = 1.0;
+            else
+                _speed *= 2;
+            _mode = PlaybackPlayModeData.Forward;
+            EnvironmentManager.Instance.SendMessage(new VideoOS.Platform.Messaging.Message(
+                                                        MessageId.SmartClient.PlaybackCommand,
+                                                        new PlaybackCommandData() { Command = PlaybackData.PlayForward, Speed = _speed }), _playbackFQID);
+
+        }
+
+        private void StopButton_Click(object sender, RoutedEventArgs e)
+        {
+            EnvironmentManager.Instance.SendMessage(new VideoOS.Platform.Messaging.Message(
+                                                  MessageId.SmartClient.PlaybackCommand,
+                                                  new PlaybackCommandData() { Command = PlaybackData.PlayStop }), _playbackFQID);
+            EnvironmentManager.Instance.Mode = Mode.ClientPlayback;
+            _speed = 0.0;
+            _mode = PlaybackPlayModeData.Stop;
+        }
     }
 }

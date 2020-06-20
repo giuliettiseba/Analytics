@@ -5,6 +5,8 @@ VisualStudioVersion = 16.0.30011.22
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Analytics", "Analytics\Analytics.csproj", "{5B755DD5-9000-4ECB-AB94-B70CDA5A7172}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MediaPlaybackViewer", "..\..\..\..\..\..\Program Files\Milestone\MIPSDK\ComponentSamples\MediaPlaybackViewer\MediaPlaybackViewer.csproj", "{D3962827-0270-4C04-B914-0AE6D7956216}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,16 @@ Global
 		{5B755DD5-9000-4ECB-AB94-B70CDA5A7172}.Release|x64.Build.0 = Release|Any CPU
 		{5B755DD5-9000-4ECB-AB94-B70CDA5A7172}.Release|x86.ActiveCfg = Release|Any CPU
 		{5B755DD5-9000-4ECB-AB94-B70CDA5A7172}.Release|x86.Build.0 = Release|Any CPU
+		{D3962827-0270-4C04-B914-0AE6D7956216}.Debug|Any CPU.ActiveCfg = Debug|x86
+		{D3962827-0270-4C04-B914-0AE6D7956216}.Debug|x64.ActiveCfg = Debug|x64
+		{D3962827-0270-4C04-B914-0AE6D7956216}.Debug|x64.Build.0 = Debug|x64
+		{D3962827-0270-4C04-B914-0AE6D7956216}.Debug|x86.ActiveCfg = Debug|x86
+		{D3962827-0270-4C04-B914-0AE6D7956216}.Debug|x86.Build.0 = Debug|x86
+		{D3962827-0270-4C04-B914-0AE6D7956216}.Release|Any CPU.ActiveCfg = Release|x86
+		{D3962827-0270-4C04-B914-0AE6D7956216}.Release|x64.ActiveCfg = Release|x64
+		{D3962827-0270-4C04-B914-0AE6D7956216}.Release|x64.Build.0 = Release|x64
+		{D3962827-0270-4C04-B914-0AE6D7956216}.Release|x86.ActiveCfg = Release|x86
+		{D3962827-0270-4C04-B914-0AE6D7956216}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

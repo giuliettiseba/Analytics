@@ -7,7 +7,7 @@
              xmlns:platformclient="clr-namespace:VideoOS.Platform.Client;assembly=VideoOS.Platform"
              mc:Ignorable="d" 
              d:DesignHeight="1000" d:DesignWidth="1000" >
-    <Grid>
+    <Grid Margin="0,0,-891,-10">
         <Grid.RowDefinitions>
             <RowDefinition Height="18"/>
             <RowDefinition Height="*"/>
@@ -27,10 +27,21 @@
         <Button Content="Search" HorizontalAlignment="Left" Margin="10,119,0,0" Grid.Row="1" VerticalAlignment="Top" Width="271" Click="Button_Click_1"/>
         <Button x:Name="_selectCameraButton" Content="Select Camera" HorizontalAlignment="Left" Margin="53,30,0,0" Grid.Row="1" VerticalAlignment="Top" Width="228" Click="Button_Click"/>
         <TextBox x:Name="textBoxAsked" HorizontalAlignment="Left" Height="23" Margin="53,160,0,0" Grid.Row="1" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="227"/>
-        <Image x:Name="pictureBox" HorizontalAlignment="Left" Height="451" Margin="306,30,0,0" Grid.Row="1" VerticalAlignment="Top" Width="649" OpacityMask="White"/>
+        <Image x:Name="pictureBox" HorizontalAlignment="Left" Height="312" Margin="334,30,0,0" Grid.Row="1" VerticalAlignment="Top" Width="392" OpacityMask="White"/>
         <TextBox x:Name="textBoxTime" HorizontalAlignment="Left" Height="23" Margin="53,188,0,0" Grid.Row="1" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="228"/>
         <Button Content="&lt; Frame" HorizontalAlignment="Left" Height="45" Margin="48,436,0,0" Grid.Row="1" VerticalAlignment="Top" Width="66" Click="Button_Click_2"/>
         <Button Content="Frame &gt;" HorizontalAlignment="Left" Height="45" Margin="215,436,0,0" Grid.Row="1" VerticalAlignment="Top" Width="66" Click="Button_Click_3"/>
+        <TextBox x:Name="textConsole" HorizontalAlignment="Left" Height="122" Margin="48,839,0,0" Grid.Row="1" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="902"/>
+        <Button x:Name="DBstart" Content="DB Start" HorizontalAlignment="Left" Margin="33,322,0,0" Grid.Row="1" VerticalAlignment="Top" Width="75" Click="DBstart_Click"/>
+        <Button x:Name="PlayButton" Content="Play" HorizontalAlignment="Left" Margin="231,309,0,0" Grid.Row="1" VerticalAlignment="Top" Width="75" Height="55" Click="PlayButton_Click"/>
+        <Button x:Name="StopButton" Content="Button" HorizontalAlignment="Left" Height="55" Margin="129,309,0,0" Grid.Row="1" VerticalAlignment="Top" Width="81" Click="StopButton_Click"/>
+        <Image x:Name="blobviewer" HorizontalAlignment="Left" Height="132" Margin="1205,30,0,0" Grid.Row="1" VerticalAlignment="Top" Width="161"/>
+        <Image x:Name="blobviewer2" HorizontalAlignment="Left" Height="132" Margin="1402,30,0,0" Grid.Row="1" VerticalAlignment="Top" Width="161"/>
+        <Image x:Name="blobviewer3" HorizontalAlignment="Left" Height="132" Margin="1616,30,0,0" Grid.Row="1" VerticalAlignment="Top" Width="161"/>
+        <Image x:Name="blobviewer4" HorizontalAlignment="Left" Height="132" Margin="1205,188,0,0" Grid.Row="1" VerticalAlignment="Top" Width="161"/>
+        <Image x:Name="blobviewer5" HorizontalAlignment="Left" Height="132" Margin="1402,188,0,0" Grid.Row="1" VerticalAlignment="Top" Width="161"/>
+        <Image x:Name="blobviewer6" HorizontalAlignment="Left" Height="132" Margin="1616,188,0,0" Grid.Row="1" VerticalAlignment="Top" Width="161"/>
+        <Image x:Name="pictureBoxOriginal" HorizontalAlignment="Left" Height="312" Margin="747,30,0,0" Grid.Row="1" VerticalAlignment="Top" Width="392" OpacityMask="White"/>
 
 
 
