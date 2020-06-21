@@ -113,7 +113,6 @@
     <Compile Include="Client\AnalyticsHeatMapWpfUserControl.xaml.cs">
       <DependentUpon>AnalyticsHeatMapWpfUserControl.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Client\AnalyticsProcess.cs" />
     <Compile Include="Client\AnalyticsPropertiesWpfUserControl.xaml.cs">
       <DependentUpon>AnalyticsPropertiesWpfUserControl.xaml</DependentUpon>
     </Compile>
@@ -208,6 +207,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Analyzer Include="..\..\..\..\..\..\..\Program Files\Milestone\MIPSDK\Bin\VideoOS.Platform.SDK.dll" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

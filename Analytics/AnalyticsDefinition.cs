@@ -48,7 +48,7 @@ namespace Analytics
 
 
         // Filtro para mensajes desde SC Plugin hacia Background
-        internal static string analyticsHeatMapSearchFilterID = "analyticsHeatMapSearch";
+        public static string analyticsHeatMapSearchFilterID = "analyticsHeatMapSearch";
 
 
         #region Private fields

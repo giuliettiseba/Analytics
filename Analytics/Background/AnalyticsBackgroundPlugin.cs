@@ -64,8 +64,6 @@ namespace Analytics.Background
             _messageCommunication = MessageCommunicationManager.Get(EnvironmentManager.Instance.MasterSite.ServerId);
             _heatmapSearchFilter = _messageCommunication.RegisterCommunicationFilter(HeatMapSearchHandler, new VideoOS.Platform.Messaging.CommunicationIdFilter(AnalyticsDefinition.analyticsHeatMapSearchFilterID));
 
-            OpenHTTPService();
-            StartMetadata();
 
 
             _stop = false;
@@ -93,214 +91,31 @@ namespace Analytics.Background
         }
 
 
-        private MediaProviderService _metadataProviderService;
-        private MetadataProviderChannel _metadataProviderChannel;
-        private readonly MetadataSerializer _metadataSerializer = new MetadataSerializer();
-
-
-                private FQID _playbackFQID;
-
-        private void OpenHTTPService()
-        {
-
-            // Open the HTTP Service
-            if (_metadataProviderService == null)
-            {
-                var hardwareDefinition = new HardwareDefinition(
-                    PhysicalAddress.Parse("001122334455"),
-                    "MetadataProvider")
-                {
-                    Firmware = "v10",
-                    MetadataDevices = { MetadataDeviceDefintion.CreateBoundingBoxDevice() }
-                };
-
-                _metadataProviderService = new MediaProviderService();
-                _metadataProviderService.Init(52123, "password", hardwareDefinition);
-            }
-            // Create a provider to handle channel 1
-            _metadataProviderChannel = _metadataProviderService.CreateMetadataProvider(1);
-            //_metadataProviderChannel.SessionOpening += MetadataProviderSessionOpening;
-            //_metadataProviderChannel.SessionClosed += MetadataProviderSessionClosed;
-
-
-            _playbackFQID = ClientControl.Instance.GeneratePlaybackController();
-            EnvironmentManager.Instance.RegisterReceiver(PlaybackTimeChangedHandler,
-                                             new MessageIdFilter(MessageId.SmartClient.PlaybackCurrentTimeIndication));
-
-
-        }
-
-
-        private static void DisplayException(Task task)
-        {
-            Debug.Assert(task.Exception != null, "task.Exception != null");
-            //     MessageBox.Show(task.Exception.InnerException.Message, @"Exception when sending metadata", MessageBoxButtons.OK, MessageBoxIcon.Error);
-        }
-
-
-        private CancellationTokenSource _cts;
-        private Task _senderTask;
-
-        private void StopMetadata()
-        {
-            if (_senderTask != null)
-            {
-                _cts.Cancel();
-                _senderTask = null;
-
-            }
-        }
-
-        private void StartMetadata()
-        {
-            _cts = new CancellationTokenSource();
-            _senderTask =
-                Task.Factory.StartNew(SendData, _cts.Token, TaskCreationOptions.LongRunning)
-                    .ContinueWith(DisplayException, TaskContinuationOptions.OnlyOnFaulted);
-
-        }
-
+     
         /// <summary>
         /// the thread doing the work
         /// </summary>
         private void Run()
         {
-            EnvironmentManager.Instance.Log(false, "Analytics background thread", "Now starting...", null);
-
-  
+            
+            EnvironmentManager.Instance.Log(false, "Analytics Process thread", "Now starting...", null);
 
             while (!_stop)
             {
-                // Do some work here.
 
-                // SendData(obj);
-
-
+              
                 Thread.Sleep(2000);
             }
             EnvironmentManager.Instance.Log(false, "Analytics background thread", "Now stopping...", null);
             _thread = null;
         }
 
-
         private enum MovementDirected
         {
             Up, Down, Left, Right
         }
 
-        private MovementDirected _currentDirection;
-
-        private void SendData(object obj)
-        {///           Dummy values
-        float TopLimit = 0.75f;
-        float RightLimit = 0.75f;
-        float BottomLimit = -0.75f;
-        float LeftLimit = -0.75f;
-        float BoundingBoxSize = 0.5f;
-        ////
-        var token = (CancellationToken)obj;
-            var dummyCenterOfGravity = new Vector { X = 0f, Y = 0f };
-            var boundingBox = new Rectangle
-            {
-                Bottom = BottomLimit,
-                Left = LeftLimit,
-                Top = BottomLimit + BoundingBoxSize,
-                Right = LeftLimit + BoundingBoxSize,
-                LineColor = DisplayColor.ParseArgbString("#BBF5F5DC"),
-                FillColor = DisplayColor.ParseArgbString("#FFA52A2A"),
-                LineDisplayPixelThickness = 1
-            };
-
-            var description = new DisplayText
-            {
-                Value = "1",
-                FontFamily = "Helvetica",
-                IsBold = false,
-                IsItalic = false,
-                Color = DisplayColor.ParseArgbString("#BBF5F5DC"),
-                Size = 10,
-                CenterX = 0,
-                CenterY = 0
-            };
-
-         const int staticObjectId = 2;
-            var staticObject = new OnvifObject(staticObjectId)
-            {
-                Appearance = new Appearance
-                {
-                    Shape = new Shape
-                    {
-                        BoundingBox = new Rectangle
-                        {
-                            Bottom = -BoundingBoxSize / 2,
-                            Left = -BoundingBoxSize / 2,
-                            Top = BoundingBoxSize / 2,
-                            Right = BoundingBoxSize / 2
-                        }
-                    },
-                    Description = new DisplayText
-                    {
-                        Value = "This is just text"
-                    }
-                }
-            };
-   
-            _currentDirection = MovementDirected.Up;
-
-            while (token.IsCancellationRequested == false)
-            {
-                const int objectId = 1;
-
-                var metadata = new MetadataStream
-                {
-                    VideoAnalyticsItems =
-                    {
-                        new VideoAnalytics
-                        {
-                            Frames =
-                            {
-                                new Frame(DateTime.UtcNow)
-                                {
-                                    Objects =
-                                    {
-                                       /* new OnvifObject(objectId)
-                                        {
-                                            Appearance = new Appearance
-                                            {
-                                                Shape = new Shape
-                                                {
-                                                    BoundingBox = boundingBox,
-                                                    CenterOfGravity = dummyCenterOfGravity
-                                                },
-                                                Description = description
-                                            }
-                                        }*/
-                                        staticObject
-                                    }
-                                }
-                            }
-                        }
-                    }
-                };
-
-                var result = _metadataProviderChannel.QueueMetadata(metadata, DateTime.UtcNow);
-                if (result == false)
-                    Trace.WriteLine(string.Format("{0}: Failed to write to channel", DateTime.UtcNow));
-                else
-                {
-
-
-                    Console.WriteLine(_metadataSerializer.WriteMetadataXml(metadata));
-                    Console.WriteLine(DateTime.Now.ToString("HH.mm.ss:fff"));
-                 
-                }
-
-                Thread.Sleep(_timeBetweenMetadata);
-            }
-        }
-
-
-        private readonly TimeSpan _timeBetweenMetadata = TimeSpan.FromSeconds(0.5);
+        
 
         private object HeatMapSearchHandler(Message message, FQID destination, FQID sender)
         {
@@ -319,12 +134,17 @@ namespace Analytics.Background
 
 
     [Serializable]
-    internal class SearchData
+    public class SearchData
     {
         public string Entry { get; set; }
         public string Camera { get; set; }
         public DateTime? End { get; internal set; }
         public DateTime? Initial { get; internal set; }
         public String ItemFQID { get; internal set; }
+
+        public String ObjectID { get; internal set; }
+        public String ObjectKind { get; internal set; }
+
+
     }
 }
