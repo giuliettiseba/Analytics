@@ -86,6 +86,8 @@
             this.label21 = new System.Windows.Forms.Label();
             this.pictureBoxBlob4 = new System.Windows.Forms.PictureBox();
             this.labelCamaraName = new System.Windows.Forms.Label();
+            this.pictureBoxHeatMap = new System.Windows.Forms.PictureBox();
+            this.buttonExport = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBoxOriginal)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBoxProcessed)).BeginInit();
             this.panelBlob.SuspendLayout();
@@ -98,6 +100,7 @@
             ((System.ComponentModel.ISupportInitialize)(this.pictureBoxBlob3)).BeginInit();
             this.panel5.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBoxBlob4)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBoxHeatMap)).BeginInit();
             this.SuspendLayout();
             // 
             // pictureBoxOriginal
@@ -111,9 +114,9 @@
             // 
             // pictureBoxProcessed
             // 
-            this.pictureBoxProcessed.Location = new System.Drawing.Point(670, 49);
+            this.pictureBoxProcessed.Location = new System.Drawing.Point(755, 49);
             this.pictureBoxProcessed.Name = "pictureBoxProcessed";
-            this.pictureBoxProcessed.Size = new System.Drawing.Size(640, 480);
+            this.pictureBoxProcessed.Size = new System.Drawing.Size(490, 248);
             this.pictureBoxProcessed.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
             this.pictureBoxProcessed.TabIndex = 1;
             this.pictureBoxProcessed.TabStop = false;
@@ -618,11 +621,32 @@
             this.labelCamaraName.TabIndex = 10;
             this.labelCamaraName.Text = "label22";
             // 
+            // pictureBoxHeatMap
+            // 
+            this.pictureBoxHeatMap.Location = new System.Drawing.Point(752, 312);
+            this.pictureBoxHeatMap.Name = "pictureBoxHeatMap";
+            this.pictureBoxHeatMap.Size = new System.Drawing.Size(490, 291);
+            this.pictureBoxHeatMap.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
+            this.pictureBoxHeatMap.TabIndex = 11;
+            this.pictureBoxHeatMap.TabStop = false;
+            // 
+            // buttonExport
+            // 
+            this.buttonExport.Location = new System.Drawing.Point(544, 584);
+            this.buttonExport.Name = "buttonExport";
+            this.buttonExport.Size = new System.Drawing.Size(150, 44);
+            this.buttonExport.TabIndex = 12;
+            this.buttonExport.Text = "Export HeatMap Data";
+            this.buttonExport.UseVisualStyleBackColor = true;
+            this.buttonExport.Click += new System.EventHandler(this.buttonExport_Click);
+            // 
             // Main
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1444, 855);
+            this.ClientSize = new System.Drawing.Size(1325, 855);
+            this.Controls.Add(this.buttonExport);
+            this.Controls.Add(this.pictureBoxHeatMap);
             this.Controls.Add(this.labelCamaraName);
             this.Controls.Add(this.panel5);
             this.Controls.Add(this.panel4);
@@ -652,6 +676,7 @@
             this.panel5.ResumeLayout(false);
             this.panel5.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBoxBlob4)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBoxHeatMap)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -717,6 +742,8 @@
         private System.Windows.Forms.Label label21;
         private System.Windows.Forms.PictureBox pictureBoxBlob4;
         private System.Windows.Forms.Label labelCamaraName;
+        private System.Windows.Forms.PictureBox pictureBoxHeatMap;
+        private System.Windows.Forms.Button buttonExport;
     }
 }
 
