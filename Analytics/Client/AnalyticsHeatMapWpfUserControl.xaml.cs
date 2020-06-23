@@ -22,26 +22,6 @@ namespace Analytics.Client
 
         private MessageCommunication _messageCommunication;
         private Item _selectItem;
-        private FQID _playbackFQID;
-        private bool _updatingStreamsFromCode = false;
-
-        private TimeLineUserControl timeLineUserControl1;
-        private PlaybackTimeInformationData _currentTimeInformation;
-
-
-        private MyPlayCommand _nextCommand = MyPlayCommand.None;
-        private string _mode = PlaybackPlayModeData.Stop;
-        enum MyPlayCommand
-        {
-            None,
-            Start,
-            End,
-            NextSequence,
-            PrevSequence,
-            NextFrame,
-            PrevFrame
-        }
-
 
         #endregion
 
@@ -50,7 +30,6 @@ namespace Analytics.Client
         public AnalyticsHeatMapWpfUserControl()
         {
             InitializeComponent();
-            SetupControls();
         }
 
         /// <summary>
@@ -59,15 +38,7 @@ namespace Analytics.Client
         /// </summary>
         public override void Init()
         {
-
-            // SetUpApplicationEventListeners();
             SetUpComunicationManager();
-
-
-
-         
-
-
         }
 
 
@@ -80,33 +51,28 @@ namespace Analytics.Client
             MessageCommunicationManager.Start(EnvironmentManager.Instance.MasterSite.ServerId);
             _messageCommunication = MessageCommunicationManager.Get(EnvironmentManager.Instance.MasterSite.ServerId);
 
-
             // Create a fiter to get messages from Smart Client Plugin
-          Object _heatmapSearchFilter = _messageCommunication.RegisterCommunicationFilter(HeatMapPicHandler, new VideoOS.Platform.Messaging.CommunicationIdFilter("heatmapPic"));
+            Object _heatmapSearchFilter = _messageCommunication.RegisterCommunicationFilter(HeatMapPicHandler, new VideoOS.Platform.Messaging.CommunicationIdFilter("heatmapPic"));
 
         }
 
         private object HeatMapPicHandler(Message message, FQID destination, FQID sender)
         {
-
-
-
             Bitmap data = (message.Data as Bitmap);
-            
-            this.Dispatcher.Invoke(() =>
+
+            if (!Dispatcher.CheckAccess())
+                this.Dispatcher.Invoke(() =>
             {
                 heatMapImage.Source = ConverBitmapToBitmapImage(data);
             });
-
+            else
+                heatMapImage.Source = ConverBitmapToBitmapImage(data);
 
             return null;
         }
 
-
         private BitmapImage ConverBitmapToBitmapImage(System.Drawing.Bitmap bmp)
         {
-
-
             MemoryStream stream = new MemoryStream();
             bmp.Save(stream, ImageFormat.Png);
             BitmapImage bitmapImage = new BitmapImage();
@@ -124,34 +90,18 @@ namespace Analytics.Client
             _messageCommunication.Dispose();
         }
 
-        private void SetUpApplicationEventListeners()
-        {
-            //set up ViewItem event listeners
-        }
-
-        private void SetupControls()
-        {
-
-            //    _analyticsProcess = new AnalyticsProcess();
-            this.timeLineUserControl1 = new TimeLineUserControl();
-
-            //// In this sample we create a specific PlaybackController.
-            //// All commands to this controller needs to be sent via messages with the destination as _playbackFQID.
-            //// All message Indications coming from this controller will have sender as _playbackController.
-
-
-        }
 
         private void Button_Click_1(object sender, System.Windows.RoutedEventArgs e)
         {
-            SearchData data = new SearchData();
-            data.Camera = _selectItem.Name as string;
-            data.ItemFQID = _selectItem.FQID.ToString();
-            data.Initial = initial.SelectedDate;
-            data.End = end.SelectedDate;
-            data.ObjectID = _selectItem.FQID.ObjectId.ToString();
-            data.ObjectKind = _selectItem.FQID.Kind.ToString();
-
+            SearchData data = new SearchData
+            {
+                Camera = _selectItem.Name as string,
+                ItemFQID = _selectItem.FQID.ToString(),
+                Initial = initial.SelectedDate,
+                End = end.SelectedDate,
+                ObjectID = _selectItem.FQID.ObjectId.ToString(),
+                ObjectKind = _selectItem.FQID.Kind.ToString()
+            };
 
             try
             {
@@ -166,8 +116,11 @@ namespace Analytics.Client
 
         private void Button_Click(object sender, RoutedEventArgs e)
         {
-            ItemPickerForm cameraPiker = new ItemPickerForm();
-            cameraPiker.KindFilter = Kind.Camera;
+            ItemPickerForm cameraPiker = new ItemPickerForm
+            {
+                KindFilter = Kind.Camera
+            };
+
             cameraPiker.Init(Configuration.Instance.GetItems());
 
             if (cameraPiker.ShowDialog() == System.Windows.Forms.DialogResult.OK)

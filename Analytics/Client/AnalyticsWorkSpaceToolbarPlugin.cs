@@ -17,7 +17,7 @@ namespace Analytics.Client
         {
             _window = window;
 
-            Title = "Analytics";
+            Title = "Analytics - HeatMap";
         }
 
         public override void Activate()

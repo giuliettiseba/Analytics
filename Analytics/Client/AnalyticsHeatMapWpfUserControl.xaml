@@ -5,9 +5,8 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:Analytics.Client"
              xmlns:platformclient="clr-namespace:VideoOS.Platform.Client;assembly=VideoOS.Platform"
-             mc:Ignorable="d" 
-             d:DesignHeight="1000" d:DesignWidth="1000" >
-    <Grid Margin="0,0,-429,176">
+             mc:Ignorable="d" d:DesignWidth="1000" Height="508" >
+    <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="18"/>
             <RowDefinition Height="*"/>
@@ -26,7 +25,7 @@
         <Label Content="Label" HorizontalAlignment="Left" Margin="10,88,0,0" Grid.Row="1" VerticalAlignment="Top"/>
         <Button Content="Search" HorizontalAlignment="Left" Margin="10,119,0,0" Grid.Row="1" VerticalAlignment="Top" Width="271" Click="Button_Click_1"/>
         <Button x:Name="_selectCameraButton" Content="Select Camera" HorizontalAlignment="Left" Margin="53,30,0,0" Grid.Row="1" VerticalAlignment="Top" Width="228" Click="Button_Click"/>
-        <Image x:Name="heatMapImage" HorizontalAlignment="Left" Height="765" Margin="322,12,0,0" VerticalAlignment="Top" Width="1020" Grid.Row="1"/>
+        <Image x:Name="heatMapImage" HorizontalAlignment="Left" Height="467" Margin="322,12,0,0" VerticalAlignment="Top" Width="664" Grid.Row="1"/>
 
     </Grid>
 </platformclient:ViewItemWpfUserControl>

@@ -27,35 +27,49 @@ namespace AnalyticServiceProto
     public partial class Main : Form
     {
 
-
-
         ///  LiveView
-
-        private Item _selectItem;
         private JPEGLiveSource _jpegLiveSource;
-        private DateTime _currentShownTime;
-
 
         /// HTTP Server
         private MediaProviderService _metadataProviderService;
         private MetadataProviderChannel _metadataProviderChannel;
         private readonly MetadataSerializer _metadataSerializer = new MetadataSerializer();
 
-
-
         ///  Metadata
-
-        private readonly TimeSpan _timeBetweenMetadata = TimeSpan.FromSeconds(0.5);
-
-        private CancellationTokenSource _cts;
-        private Task _senderTask;
-
-
         private int _count = 0;
+        private const int scaleArea = 50;
+        
+
         /// HeatMap
+        private Bitmap referenceBitmap;
+        private Bitmap bitmapHeatMap;
+        private Dictionary<Vector, KeyValuePair<int, DateTime>> heatmapData;
+        private const int clusterSize = 5;
+        private const int gridSize = 5;
+        private const int yellowThreshold = 5;
+        private const int redThreshold = 10;
+        private const int circleSize = 15;
 
 
+        /// Image Process
 
+        // background and previous frames
+        private UnmanagedImage backgroundFrame = null;
+        private UnmanagedImage currentFrame = null;
+        private UnmanagedImage motionObjectsImage = null;
+
+        // filters used to do image processing
+        private Difference differenceFilter = new Difference();
+        private Threshold thresholdFilter = new Threshold(25);
+        private Opening openingFilter = new Opening();
+
+        private BlobCounter blobCounter = new BlobCounter();
+
+        private System.Drawing.Imaging.BitmapData bitmapData;
+        private int width, height;
+
+        // Maths
+        private Dictionary<double, double> reciprocals = new Dictionary<double, double>();
 
 
         /// <summary>
@@ -63,44 +77,38 @@ namespace AnalyticServiceProto
         /// </summary>
         // Communication 
         private MessageCommunication _messageCommunication;
-        private object _heatmapSearchFilter;
 
         public Main()
         {
             InitializeComponent();
 
-            // Test Camera comment on full demo
+            // Test Parameters Onl
             //Item _newItem = Configuration.Instance.GetItem(new Guid("d198ae21-1aba-48fa-83d5-f0aa191439f9"), new Guid("5135ba21-f1dc-4321-806a-6ce2017343c0"));
             //OpenStream(_newItem);
 
-
             // Start Metadata Device service
             OpenHTTPService();
-
 
             // Start Communication Manager 
             MessageCommunicationManager.Start(EnvironmentManager.Instance.MasterSite.ServerId);
             _messageCommunication = MessageCommunicationManager.Get(EnvironmentManager.Instance.MasterSite.ServerId);
 
             // Create a fiter to get messages from Smart Client Plugin
-            _heatmapSearchFilter = _messageCommunication.RegisterCommunicationFilter(HeatMapSearchHandler, new VideoOS.Platform.Messaging.CommunicationIdFilter(AnalyticsDefinition.analyticsHeatMapSearchFilterID));
+            _messageCommunication.RegisterCommunicationFilter(HeatMapSearchHandler, new VideoOS.Platform.Messaging.CommunicationIdFilter(AnalyticsDefinition.analyticsHeatMapSearchFilterID));
         }
 
         private void StartHeatMap()
         {
             bitmapHeatMap = new Bitmap(referenceBitmap);
         }
-
         private object HeatMapSearchHandler(VideoOS.Platform.Messaging.Message message, FQID destination, FQID sender)
         {
             SearchData data = (message.Data as SearchData);
-
             Item _newItem = Configuration.Instance.GetItem(new Guid(data.ObjectID), new Guid(data.ObjectKind));
 
             if (this.labelCamaraName.InvokeRequired)
             {
                 this.Invoke(new Action(() =>
-
                 {
                     OpenStream(_newItem);
                     labelCamaraName.Text = data.Camera;
@@ -114,51 +122,31 @@ namespace AnalyticServiceProto
             return null;
         }
 
-        private void SetStreamType(int width, int height)
+        private void SetStreamType()
         {
             if (null == _jpegLiveSource)
                 return;
-
             _jpegLiveSource.StreamSelectionParams.StreamSelectionType = StreamSelectionType.DefaultStream;
-
         }
-
 
         private void OpenStream(Item _selectItem)
         {
-
-            _currentShownTime = new DateTime(2020, 06, 16, 20, 23, 27, 685);
-
-            textBoxFQID.Text = _selectItem.FQID.ToString();
-            textBoxName.Text = _selectItem.Name.ToString();
-
-
             _jpegLiveSource = new JPEGLiveSource(_selectItem);
+
             int width = 800;
             int height = 600;
 
             try
             {
-
-
                 _jpegLiveSource.Width = width;
                 _jpegLiveSource.Height = height;
                 _jpegLiveSource.SetWidthHeight();
-                SetStreamType(width, height);
+                SetStreamType();
                 _jpegLiveSource.LiveModeStart = true;
-                checkBoxAspect.Enabled = false;
-
-                //       _jpegLiveSource.Width = pictureBoxOriginal.Width;
-                //        _jpegLiveSource.Height = pictureBoxOriginal.Height;
-
-                //       SetStreamType(pictureBoxOriginal.Width, pictureBoxOriginal.Height);
-
                 _jpegLiveSource.Init();
                 _jpegLiveSource.LiveContentEvent += JpegLiveSource1LiveNotificationEvent;
-
                 textBoxCount.Text = "0";
                 _count = 0;
-
             }
             catch (Exception ex)
             {
@@ -167,7 +155,6 @@ namespace AnalyticServiceProto
             }
         }
 
-        Bitmap referenceBitmap;
 
         private bool OnMainThread = false;
         /// <summary>
@@ -201,7 +188,7 @@ namespace AnalyticServiceProto
                     if (args.LiveContent != null)
                     {
                         // Display the received JPEG
-                        textBoxLength.Text = "" + args.LiveContent.Content.Length;
+                        //textBoxLength.Text = "" + args.LiveContent.Content.Length;
 
                         int width = args.LiveContent.Width;
                         int height = args.LiveContent.Height;
@@ -213,14 +200,11 @@ namespace AnalyticServiceProto
                         if (referenceBitmap == null)
                             referenceBitmap = newBitmap;
 
-
-
-
                         textBoxResolution.Text = "" + width + "x" + height;
 
                         if (pictureBoxOriginal.Size.Width != 0 && pictureBoxOriginal.Size.Height != 0)
                         {
-                            if (!checkBoxAspect.Checked && (newBitmap.Width != pictureBoxOriginal.Width || newBitmap.Height != pictureBoxOriginal.Height))
+                            if ((newBitmap.Width != pictureBoxOriginal.Width || newBitmap.Height != pictureBoxOriginal.Height))
                             {
                                 pictureBoxOriginal.Image = new Bitmap(newBitmap, pictureBoxOriginal.Size);
                             }
@@ -230,15 +214,6 @@ namespace AnalyticServiceProto
                             }
                         }
 
-
-                        if (args.LiveContent.CroppingDefined)
-                        {
-                            textBoxCropRect.Text = "" + args.LiveContent.CropWidth + "x" + args.LiveContent.CropHeight;
-                        }
-                        else
-                        {
-                            textBoxCropRect.Text = "--";
-                        }
                         textBoxDecodingStatus.Text = args.LiveContent.HardwareDecodingStatus;
 
                         ms.Close();
@@ -249,11 +224,8 @@ namespace AnalyticServiceProto
 
                         args.LiveContent.Dispose();
 
-
                         /// PocessImage
-                        //                       pictureBoxProcessed.Image = ProcessImage(testBox());
                         pictureBoxProcessed.Image = ProcessImage(newBitmap);
-
                     }
                     else if (args.Exception != null)
                     {
@@ -273,11 +245,8 @@ namespace AnalyticServiceProto
             }
         }
 
-
-
         private void OpenHTTPService()
         {
-
             // Open the HTTP Service
             if (_metadataProviderService == null)
             {
@@ -297,7 +266,6 @@ namespace AnalyticServiceProto
             _metadataProviderChannel.SessionOpening += MetadataProviderSessionOpening;
             _metadataProviderChannel.SessionClosed += MetadataProviderSessionClosed;
         }
-
 
         void MetadataProviderSessionOpening(MediaProviderSession session)
         {
@@ -325,23 +293,6 @@ namespace AnalyticServiceProto
 
 
 
-
-        // background and previous frames
-        private UnmanagedImage backgroundFrame = null;
-        private UnmanagedImage currentFrame = null;
-        private UnmanagedImage motionObjectsImage = null;
-
-        // filters used to do image processing
-        private Difference differenceFilter = new Difference();
-        private Threshold thresholdFilter = new Threshold(25);
-        private Opening openingFilter = new Opening();
-
-        private BlobCounter blobCounter = new BlobCounter();
-
-        private System.Drawing.Imaging.BitmapData bitmapData;
-        private MoveTowards moveTowardsFilter = new MoveTowards();
-        private int width, height, frameSize;
-
         public Bitmap ProcessImage(Bitmap image)
         {
 
@@ -350,7 +301,6 @@ namespace AnalyticServiceProto
                 // save image dimension
                 width = image.Width;
                 height = image.Height;
-                frameSize = width * height;
 
                 // create initial backgroung image
                 bitmapData = image.LockBits(
@@ -368,42 +318,29 @@ namespace AnalyticServiceProto
             motionObjectsImage = UnmanagedImage.Create(width, height, PixelFormat.Format8bppIndexed);
             //   betweenFramesMotion = UnmanagedImage.Create(width, height, PixelFormat.Format8bppIndexed);
 
-
-
             // lock source image
             bitmapData = image.LockBits(
                     new System.Drawing.Rectangle(0, 0, width, height),
                     ImageLockMode.ReadOnly, PixelFormat.Format24bppRgb);
 
-            // // apply the grayscale filter
+            // apply the grayscale filter
             Grayscale.CommonAlgorithms.BT709.Apply(new UnmanagedImage(bitmapData), currentFrame);
 
-
-
-            // // unlock source image
+            // unlock source image
             image.UnlockBits(bitmapData);
 
 
-            // // set backgroud frame as an overlay for difference filter
+            // set backgroud frame as an overlay for difference filter
             differenceFilter.UnmanagedOverlayImage = backgroundFrame;
-
-
 
             // // apply difference filter
             differenceFilter.Apply(currentFrame, motionObjectsImage);
-
-
 
             // // apply threshold filter
             thresholdFilter.ApplyInPlace(motionObjectsImage);
 
             // // apply opening filter to remove noise
             openingFilter.ApplyInPlace(motionObjectsImage);
-
-
-            //motionObjectsImage = currentFrame;
-
-
 
             // process blobs
             blobCounter.FilterBlobs = true;
@@ -414,7 +351,7 @@ namespace AnalyticServiceProto
             Blob[] blobs = blobCounter.GetObjectsInformation();
             blobCounter.ObjectsOrder = ObjectsOrder.Size;
 
-
+            /// Debug tool
 
             try
             {
@@ -425,8 +362,6 @@ namespace AnalyticServiceProto
                     textBoxAreaBlob1.Text = blobs[0].Area.ToString();
                     textBoxXBlob1.Text = blobs[0].CenterOfGravity.X.ToString();
                     textBoxYBlob1.Text = blobs[0].CenterOfGravity.Y.ToString();
-
-
                 }
 
                 if (blobs[1] != null)
@@ -465,46 +400,28 @@ namespace AnalyticServiceProto
                 Console.WriteLine(r.Message);
             }
 
-
             SendMetadataBox(blobs);
-            paintHeatMap(blobs);
+            PaintHeatMap(blobs);
 
             return motionObjectsImage.ToManagedImage();
         }
 
-        Bitmap bitmapHeatMap;
-        Dictionary<Vector, KeyValuePair<int, DateTime>> heatmapData;
 
-        private void paintHeatMap(Blob[] blobs)
+        private void PaintHeatMap(Blob[] blobs)
         {
             if (bitmapHeatMap == null) StartHeatMap();
-
             if (heatmapData == null) StartHeatMapData();
-
 
             try
             {
-
                 foreach (Blob blob in blobs)
-                    addHeatMapValue((int)blob.CenterOfGravity.X, (int)blob.CenterOfGravity.Y, DateTime.Now);
-
+                    AddHeatMapValue((int)blob.CenterOfGravity.X, (int)blob.CenterOfGravity.Y, DateTime.Now);
             }
-            catch (Exception)
+            catch (Exception e)
             {
-
-
+                Console.WriteLine(e.Message);
             }
-
-            //pictureBoxHeatMap.Image = testBox();
-
-
         }
-
-
-
-
-        const int clusterSize = 5;
-        const int gridSize = 5;
 
 
         /// <summary>
@@ -513,69 +430,56 @@ namespace AnalyticServiceProto
         /// <param name="x"></param>
         /// <param name="y"></param>
         /// 
-
-        private const int yellowThreshold = 5;
-        private const int redThreshold = 10;
-
-        private void addHeatMapValue(int x, int y, DateTime timeStamp)
+        private void AddHeatMapValue(int x, int y, DateTime timeStamp)
         {
-            x = x - (x % gridSize);
-            y = y - (y % gridSize);
+            // get box middle
+            x -= (x % gridSize);
+            y -= (y % gridSize);
 
             Vector vector = new Vector() { X = x, Y = y };
             int maxNearValue = 0;
             Vector maxVector = vector;
 
-            // int value = 1;
             /// Clustering
             /// 
 
             for (int j = -(clusterSize / 2); j < (clusterSize / 2); j++)
                 for (int i = -(clusterSize / 2); i < (clusterSize / 2); i++)
                 {
-                    KeyValuePair<int, DateTime> tempValue = new KeyValuePair<int, DateTime>(0, timeStamp);
                     Vector tmpVector = new Vector() { X = x + i, Y = y + j };
 
-                    if (heatmapData.TryGetValue(tmpVector, out tempValue))
+                    if (heatmapData.TryGetValue(tmpVector, out KeyValuePair<int, DateTime> tempValue))
                         if (tempValue.Key > maxNearValue)
                         {
                             maxNearValue = tempValue.Key;
-
                             maxVector = tmpVector;
                         };
-
                 }
 
             // Time filter  
             if (!heatmapData.ContainsKey(maxVector) || (timeStamp - heatmapData[maxVector].Value).TotalSeconds > 20)
             {
+                // Write new value
                 heatmapData[maxVector] = new KeyValuePair<int, DateTime>(maxNearValue + 1, timeStamp);
+
+                // Paint 
                 Graphics heatmapGraphics = Graphics.FromImage(bitmapHeatMap);
                 Color color;
-
                 if (heatmapData[maxVector].Key < yellowThreshold)
                     color = System.Drawing.Color.Blue;
                 else
                     if (heatmapData[maxVector].Key < redThreshold) color = System.Drawing.Color.Yellow;
                 else
                     color = System.Drawing.Color.Red;
-
-                //Aux Method
+                //Paint Aux Method
                 FillEllipseDifusse(heatmapGraphics, color, (int)maxVector.X, (int)maxVector.Y);
             }
             pictureBoxHeatMap.Image = bitmapHeatMap;
-
         }
 
-
-        private const int circleSize = 15;
         private void FillEllipseDifusse(Graphics heatmapGraphics, Color color, int x, int y)
         {
-
-            // alfa 0 a 255
-
-
-            for (int i = 0; i < circleSize; i = i + 2)
+            for (int i = 0; i < circleSize; i += 2)
             {
                 int xx = x - i / 2;
                 int yy = y - i / 2;
@@ -584,57 +488,16 @@ namespace AnalyticServiceProto
                     );
                 heatmapGraphics.DrawEllipse(pen, xx, yy, i, i);
             }
-
-            // return heatmapGraphics;
         }
-
-
-
 
         private void StartHeatMapData()
         {
             heatmapData = new Dictionary<Vector, KeyValuePair<int, DateTime>>();
         }
 
-        float i = -50f;
-        float j = -50f;
-
-        float step = 10f;
-        bool rev_i = false;
-        bool rev_j = false;
-
-        private Bitmap testBox()
-        {
-
-            if (rev_i) i = i - step;
-            else
-                i = i + step;
-            if (rev_j) j = j - step;
-            else
-                j = j + step;
-
-            int w = _jpegLiveSource.Width;
-            int h = _jpegLiveSource.Height;
-            Bitmap flag = new Bitmap(w, h);
-            Graphics flagGraphics = Graphics.FromImage(flag);
-            flagGraphics.FillRectangle(Brushes.Red, i, j, 10, 10);
-
-
-            if (i > w) rev_i = true;
-            if (i < 00) rev_i = false;
-
-            if (j > h) rev_j = true;
-            if (j < 00) rev_j = false;
-
-            return flag;
-        }
-
-        Dictionary<double, double> reciprocals = new Dictionary<double, double>();
-
         private double Reciprocal(double val)
         {
-            double reciprocal;
-            if (reciprocals.TryGetValue(val, out reciprocal))
+            if (reciprocals.TryGetValue(val, out double reciprocal))
             {
                 return reciprocal;
             }
@@ -643,25 +506,18 @@ namespace AnalyticServiceProto
             reciprocals[reciprocal] = val;
             return reciprocal;
         }
-
-
-
+        
         private OnvifObject CreateOnvifObject(float x, float y, float area, string n, int id)
         {
-            area = area / 50;
+            area /= scaleArea;
             float r_x = (float)Reciprocal(width);
             float r_y = (float)Reciprocal(height);
             float r_xx = r_x * 2;
             float r_yy = r_y * 2;
-
-
             var centerOfGravity = new Vector { X = x, Y = y };
 
             var blob = new OnvifObject(id)
             {
-
-
-
                 Appearance = new VideoOS.Platform.Metadata.Appearance
                 {
                     Shape = new Shape
@@ -686,20 +542,15 @@ namespace AnalyticServiceProto
                     }
                 }
             };
-
-
             return blob;
         }
 
-        private void buttonExport_Click(object sender, EventArgs e)
+        private void ButtonExport_Click(object sender, EventArgs e)
         {
-            
-            
             DictToCsv(heatmapData, @"C:\Temp\heatMap.cvs");
         }
 
-
-        public static void DictToCsv(Dictionary<Vector, KeyValuePair<int,DateTime>> dict, string filePath)
+        public static void DictToCsv(Dictionary<Vector, KeyValuePair<int, DateTime>> dict, string filePath)
         {
             try
             {
@@ -714,25 +565,29 @@ namespace AnalyticServiceProto
             }
         }
 
-        private void button1_Click(object sender, EventArgs e)
+        private void Button1_Click(object sender, EventArgs e)
         {
-            Bitmap data = (Bitmap) pictureBoxHeatMap.Image;
+            Bitmap data = (Bitmap)pictureBoxHeatMap.Image;
             _messageCommunication.TransmitMessage(new VideoOS.Platform.Messaging.Message("heatmapPic", data), null, null, null);
-
         }
 
         private void SendMetadataBox(Blob[] blobs)
         {
             try
             {
-                OnvifObject blob1 = CreateOnvifObject(blobs[0].CenterOfGravity.X, blobs[0].CenterOfGravity.Y, blobs[0].Area, blobs[0].ID.ToString(), 1);
-                OnvifObject blob2 = CreateOnvifObject(blobs[1].CenterOfGravity.X, blobs[1].CenterOfGravity.Y, blobs[1].Area, blobs[1].ID.ToString(), 2);
-                OnvifObject blob3 = CreateOnvifObject(blobs[2].CenterOfGravity.X, blobs[2].CenterOfGravity.Y, blobs[2].Area, blobs[2].ID.ToString(), 3);
-                OnvifObject blob4 = CreateOnvifObject(blobs[3].CenterOfGravity.X, blobs[3].CenterOfGravity.Y, blobs[3].Area, blobs[3].ID.ToString(), 4);
+                OnvifObject blob1 = new OnvifObject();
+                OnvifObject blob2 = new OnvifObject();
+                OnvifObject blob3 = new OnvifObject();
+                OnvifObject blob4 = new OnvifObject();
 
-
-                List<OnvifObject> blobList = new List<OnvifObject>();
-
+                if (blobs[0] != null)
+                    blob1 = CreateOnvifObject(blobs[0].CenterOfGravity.X, blobs[0].CenterOfGravity.Y, blobs[0].Area, blobs[0].ID.ToString(), 1);
+                if (blobs[1] != null)
+                    blob2 = CreateOnvifObject(blobs[1].CenterOfGravity.X, blobs[1].CenterOfGravity.Y, blobs[1].Area, blobs[1].ID.ToString(), 2);
+                if (blobs[2] != null)
+                    blob3 = CreateOnvifObject(blobs[2].CenterOfGravity.X, blobs[2].CenterOfGravity.Y, blobs[2].Area, blobs[2].ID.ToString(), 3);
+                if (blobs[3] != null)
+                    blob4 = CreateOnvifObject(blobs[3].CenterOfGravity.X, blobs[3].CenterOfGravity.Y, blobs[3].Area, blobs[3].ID.ToString(), 4);
 
                 MetadataStream metadata = new MetadataStream
                 {
@@ -746,7 +601,7 @@ namespace AnalyticServiceProto
                             {
                                 Objects =
                                 {
-                                           blob1,blob2,blob3,blob4
+                                         blob1,blob2,blob3,blob4
                                 }
                             }
                         }
@@ -760,31 +615,13 @@ namespace AnalyticServiceProto
                 else
                 {
                     textBoxMetadata.Text = _metadataSerializer.WriteMetadataXml(metadata);
-                    Console.WriteLine(DateTime.Now.ToString("HH.mm.ss:fff"));
+                    //Console.WriteLine(DateTime.Now.ToString("HH.mm.ss:fff"));
                 }
-
             }
             catch (Exception e)
             {
-
                 Console.WriteLine(e.Message);
             }
-
         }
-
-
-        private void StopMetadata()
-        {
-            if (_senderTask != null)
-            {
-                _cts.Cancel();
-                _senderTask = null;
-
-            }
-        }
-
-
-
-
     }
 }

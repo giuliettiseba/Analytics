@@ -76,61 +76,10 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Admin\AnalyticsAddUserControl.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
-    <Compile Include="Admin\AnalyticsAddUserControl.Designer.cs">
-      <DependentUpon>AnalyticsAddUserControl.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Admin\AnalyticsHelpPage.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
-    <Compile Include="Admin\AnalyticsHelpPage.Designer.cs">
-      <DependentUpon>AnalyticsHelpPage.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Admin\AnalyticsItemManager.cs" />
-    <Compile Include="Admin\AnalyticsTabPlugin.cs" />
-    <Compile Include="Admin\AnalyticsTabUserControl.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
-    <Compile Include="Admin\AnalyticsTabUserControl.Designer.cs">
-      <DependentUpon>AnalyticsTabUserControl.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Admin\AnalyticsToolsOptionDialogPlugin.cs" />
-    <Compile Include="Admin\AnalyticsToolsOptionDialogUserControl.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
-    <Compile Include="Admin\AnalyticsToolsOptionDialogUserControl.designer.cs">
-      <DependentUpon>AnalyticsToolsOptionDialogUserControl.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Admin\AnalyticsUserControl.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
-    <Compile Include="Admin\AnalyticsUserControl.Designer.cs">
-      <DependentUpon>AnalyticsUserControl.cs</DependentUpon>
-    </Compile>
     <Compile Include="Background\AnalyticsBackgroundPlugin.cs" />
     <Compile Include="Client\AnalyticsHeatMapWpfUserControl.xaml.cs">
       <DependentUpon>AnalyticsHeatMapWpfUserControl.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Client\AnalyticsPropertiesWpfUserControl.xaml.cs">
-      <DependentUpon>AnalyticsPropertiesWpfUserControl.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Client\AnalyticsSettingsPanelPlugin.cs" />
-    <Compile Include="Client\AnalyticsSettingsPanelControl.xaml.cs">
-      <DependentUpon>AnalyticsSettingsPanelControl.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Client\AnalyticsSidePanelPlugin.cs" />
-    <Compile Include="Client\AnalyticsSidePanelWpfUserControl.xaml.cs">
-      <DependentUpon>AnalyticsSidePanelWpfUserControl.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Client\AnalyticsViewItemPlugin.cs" />
-    <Compile Include="Client\AnalyticsViewItemManager.cs" />
-    <Compile Include="Client\AnalyticsViewItemToolbarPlugin.cs" />
-    <Compile Include="Client\AnalyticsViewItemWpfUserControl.xaml.cs">
-      <DependentUpon>AnalyticsViewItemWpfUserControl.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Client\AnalyticsViewLayout.cs" />
     <Compile Include="Client\AnalyticsWorkSpacePlugin.cs" />
     <Compile Include="Client\AnalyticsWorkSpaceToolbarPlugin.cs" />
     <Compile Include="Client\AnalyticsWorkSpaceViewItemManager.cs" />
@@ -147,26 +96,9 @@
     <Compile Include="AnalyticsDefinition.cs" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Admin\AnalyticsAddUserControl.resx">
-      <DependentUpon>AnalyticsAddUserControl.cs</DependentUpon>
-    </EmbeddedResource>
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Admin\AnalyticsTabUserControl.resx">
-      <DependentUpon>AnalyticsTabUserControl.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Admin\AnalyticsToolsOptionDialogUserControl.resx">
-      <DependentUpon>AnalyticsToolsOptionDialogUserControl.cs</DependentUpon>
-    </EmbeddedResource>
     <EmbeddedResource Include="Resources\Server.png" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Admin\AnalyticsHelpPage.resx">
-      <DependentUpon>AnalyticsHelpPage.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Admin\AnalyticsUserControl.resx">
-      <DependentUpon>AnalyticsUserControl.cs</DependentUpon>
-    </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
@@ -183,22 +115,6 @@
     <Page Include="Client\AnalyticsHeatMapWpfUserControl.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
-    </Page>
-    <Page Include="Client\AnalyticsPropertiesWpfUserControl.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Client\AnalyticsSettingsPanelControl.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="Client\AnalyticsSidePanelWpfUserControl.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Client\AnalyticsViewItemWpfUserControl.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Client\AnalyticsWorkSpaceViewItemWpfUserControl.xaml">
       <SubType>Designer</SubType>

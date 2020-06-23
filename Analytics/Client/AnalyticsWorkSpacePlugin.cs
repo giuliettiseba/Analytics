@@ -15,7 +15,7 @@ namespace Analytics.Client
         private List<object> _messageRegistrationObjects = new List<object>();
 
         private bool _workSpaceSelected = false;
-        private bool _workSpaceViewSelected = false;
+        //private bool _workSpaceViewSelected = false;
 
         /// <summary>
         /// The Id.
@@ -54,16 +54,20 @@ namespace Analytics.Client
             _messageRegistrationObjects.Add(EnvironmentManager.Instance.RegisterReceiver(SelectedViewChangedReceiver, new MessageIdFilter(MessageId.SmartClient.SelectedViewChangedIndication)));
 
             //build view layout - modify to your needs. Here we use a matrix of 1000x1000 to define the layout 
-            List<Rectangle> rectangles = new List<Rectangle>();
-            rectangles.Add(new Rectangle(000, 000, 1000, 1000));      // Index 0 = Used by a camera below
+            List<Rectangle> rectangles = new List<Rectangle>
+            {
+                new Rectangle(000, 000, 1000, 1000)      // Index 0 = Used by a camera below
+            };
             ViewAndLayoutItem.Layout = rectangles.ToArray();
             ViewAndLayoutItem.Name = Name;
 
             //add viewitems to view layout
 
             Item cameraItem = FindAnyCamera(Configuration.Instance.GetItemsByKind(Kind.Camera));
-            Dictionary<String, String> properties = new Dictionary<string, string>();
-            properties.Add("CameraId", cameraItem != null ? cameraItem.FQID.ObjectId.ToString() : Guid.Empty.ToString());
+            Dictionary<String, String> properties = new Dictionary<string, string>
+            {
+                { "CameraId", cameraItem != null ? cameraItem.FQID.ObjectId.ToString() : Guid.Empty.ToString() }
+            };
 
             ViewAndLayoutItem.InsertViewItemPlugin(0,new AnalyticsWorkSpaceViewItemPlugin(), new Dictionary<String, String>());
         }
@@ -144,11 +148,11 @@ namespace Analytics.Client
         {
             if (message.Data is Item && ((Item)message.Data).FQID.ObjectId == ViewAndLayoutItem.FQID.ObjectId)
             {
-                _workSpaceViewSelected = true;
+                //_workSpaceViewSelected = true;
             }
             else
             {
-                _workSpaceViewSelected = false;
+                //_workSpaceViewSelected = false;
             }
             return null;
         }

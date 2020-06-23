@@ -48,22 +48,11 @@
             this.pictureBoxBlob2 = new System.Windows.Forms.PictureBox();
             this.panel2 = new System.Windows.Forms.Panel();
             this.textBoxDecodingStatus = new System.Windows.Forms.TextBox();
-            this.textBoxCropRect = new System.Windows.Forms.TextBox();
-            this.checkBoxAspect = new System.Windows.Forms.CheckBox();
             this.textBoxCount = new System.Windows.Forms.TextBox();
-            this.textBoxLength = new System.Windows.Forms.TextBox();
-            this.label15 = new System.Windows.Forms.Label();
             this.label14 = new System.Windows.Forms.Label();
             this.label13 = new System.Windows.Forms.Label();
-            this.label12 = new System.Windows.Forms.Label();
-            this.label11 = new System.Windows.Forms.Label();
             this.label8 = new System.Windows.Forms.Label();
-            this.textBoxCurrentFrame = new System.Windows.Forms.TextBox();
             this.textBoxResolution = new System.Windows.Forms.TextBox();
-            this.textBoxName = new System.Windows.Forms.TextBox();
-            this.textBoxFQID = new System.Windows.Forms.TextBox();
-            this.label7 = new System.Windows.Forms.Label();
-            this.label6 = new System.Windows.Forms.Label();
             this.panel3 = new System.Windows.Forms.Panel();
             this.label10 = new System.Windows.Forms.Label();
             this.textBoxMetadata = new System.Windows.Forms.TextBox();
@@ -106,6 +95,7 @@
             // 
             // pictureBoxOriginal
             // 
+            this.pictureBoxOriginal.BackColor = System.Drawing.SystemColors.ActiveCaption;
             this.pictureBoxOriginal.Location = new System.Drawing.Point(12, 49);
             this.pictureBoxOriginal.Name = "pictureBoxOriginal";
             this.pictureBoxOriginal.Size = new System.Drawing.Size(245, 219);
@@ -115,6 +105,7 @@
             // 
             // pictureBoxProcessed
             // 
+            this.pictureBoxProcessed.BackColor = System.Drawing.SystemColors.ActiveCaption;
             this.pictureBoxProcessed.Location = new System.Drawing.Point(12, 274);
             this.pictureBoxProcessed.Name = "pictureBoxProcessed";
             this.pictureBoxProcessed.Size = new System.Drawing.Size(245, 235);
@@ -131,7 +122,7 @@
             this.panelBlob.Controls.Add(this.label2);
             this.panelBlob.Controls.Add(this.areaLabel);
             this.panelBlob.Controls.Add(this.pictureBoxBlob1);
-            this.panelBlob.Location = new System.Drawing.Point(12, 653);
+            this.panelBlob.Location = new System.Drawing.Point(57, 653);
             this.panelBlob.Name = "panelBlob";
             this.panelBlob.Size = new System.Drawing.Size(245, 88);
             this.panelBlob.TabIndex = 2;
@@ -186,6 +177,7 @@
             // 
             // pictureBoxBlob1
             // 
+            this.pictureBoxBlob1.BackColor = System.Drawing.SystemColors.ActiveCaption;
             this.pictureBoxBlob1.Location = new System.Drawing.Point(3, 3);
             this.pictureBoxBlob1.Name = "pictureBoxBlob1";
             this.pictureBoxBlob1.Size = new System.Drawing.Size(81, 82);
@@ -202,7 +194,7 @@
             this.panel1.Controls.Add(this.label4);
             this.panel1.Controls.Add(this.label5);
             this.panel1.Controls.Add(this.pictureBoxBlob2);
-            this.panel1.Location = new System.Drawing.Point(280, 653);
+            this.panel1.Location = new System.Drawing.Point(322, 653);
             this.panel1.Name = "panel1";
             this.panel1.Size = new System.Drawing.Size(245, 88);
             this.panel1.TabIndex = 7;
@@ -257,6 +249,7 @@
             // 
             // pictureBoxBlob2
             // 
+            this.pictureBoxBlob2.BackColor = System.Drawing.SystemColors.ActiveCaption;
             this.pictureBoxBlob2.Location = new System.Drawing.Point(3, 3);
             this.pictureBoxBlob2.Name = "pictureBoxBlob2";
             this.pictureBoxBlob2.Size = new System.Drawing.Size(81, 82);
@@ -267,78 +260,34 @@
             // panel2
             // 
             this.panel2.Controls.Add(this.textBoxDecodingStatus);
-            this.panel2.Controls.Add(this.textBoxCropRect);
-            this.panel2.Controls.Add(this.checkBoxAspect);
             this.panel2.Controls.Add(this.textBoxCount);
-            this.panel2.Controls.Add(this.textBoxLength);
-            this.panel2.Controls.Add(this.label15);
             this.panel2.Controls.Add(this.label14);
             this.panel2.Controls.Add(this.label13);
-            this.panel2.Controls.Add(this.label12);
-            this.panel2.Controls.Add(this.label11);
             this.panel2.Controls.Add(this.label8);
-            this.panel2.Controls.Add(this.textBoxCurrentFrame);
             this.panel2.Controls.Add(this.textBoxResolution);
-            this.panel2.Controls.Add(this.textBoxName);
-            this.panel2.Controls.Add(this.textBoxFQID);
-            this.panel2.Controls.Add(this.label7);
-            this.panel2.Controls.Add(this.label6);
-            this.panel2.Location = new System.Drawing.Point(912, 609);
+            this.panel2.Location = new System.Drawing.Point(12, 515);
             this.panel2.Name = "panel2";
-            this.panel2.Size = new System.Drawing.Size(333, 239);
+            this.panel2.Size = new System.Drawing.Size(193, 100);
             this.panel2.TabIndex = 8;
             // 
             // textBoxDecodingStatus
             // 
-            this.textBoxDecodingStatus.Location = new System.Drawing.Point(82, 175);
+            this.textBoxDecodingStatus.Location = new System.Drawing.Point(89, 71);
             this.textBoxDecodingStatus.Name = "textBoxDecodingStatus";
             this.textBoxDecodingStatus.Size = new System.Drawing.Size(100, 20);
             this.textBoxDecodingStatus.TabIndex = 12;
             // 
-            // textBoxCropRect
-            // 
-            this.textBoxCropRect.Location = new System.Drawing.Point(82, 201);
-            this.textBoxCropRect.Name = "textBoxCropRect";
-            this.textBoxCropRect.Size = new System.Drawing.Size(100, 20);
-            this.textBoxCropRect.TabIndex = 12;
-            // 
-            // checkBoxAspect
-            // 
-            this.checkBoxAspect.AutoSize = true;
-            this.checkBoxAspect.Location = new System.Drawing.Point(262, 126);
-            this.checkBoxAspect.Name = "checkBoxAspect";
-            this.checkBoxAspect.Size = new System.Drawing.Size(59, 17);
-            this.checkBoxAspect.TabIndex = 11;
-            this.checkBoxAspect.Text = "Aspect";
-            this.checkBoxAspect.UseVisualStyleBackColor = true;
-            // 
             // textBoxCount
             // 
-            this.textBoxCount.Location = new System.Drawing.Point(82, 149);
+            this.textBoxCount.Location = new System.Drawing.Point(89, 40);
             this.textBoxCount.Name = "textBoxCount";
-            this.textBoxCount.Size = new System.Drawing.Size(81, 20);
+            this.textBoxCount.Size = new System.Drawing.Size(100, 20);
             this.textBoxCount.TabIndex = 10;
-            // 
-            // textBoxLength
-            // 
-            this.textBoxLength.Location = new System.Drawing.Point(82, 123);
-            this.textBoxLength.Name = "textBoxLength";
-            this.textBoxLength.Size = new System.Drawing.Size(100, 20);
-            this.textBoxLength.TabIndex = 9;
-            // 
-            // label15
-            // 
-            this.label15.AutoSize = true;
-            this.label15.Location = new System.Drawing.Point(19, 204);
-            this.label15.Name = "label15";
-            this.label15.Size = new System.Drawing.Size(29, 13);
-            this.label15.TabIndex = 8;
-            this.label15.Text = "Crop";
             // 
             // label14
             // 
             this.label14.AutoSize = true;
-            this.label14.Location = new System.Drawing.Point(4, 175);
+            this.label14.Location = new System.Drawing.Point(38, 75);
             this.label14.Name = "label14";
             this.label14.Size = new System.Drawing.Size(37, 13);
             this.label14.TabIndex = 8;
@@ -347,84 +296,27 @@
             // label13
             // 
             this.label13.AutoSize = true;
-            this.label13.Location = new System.Drawing.Point(11, 152);
+            this.label13.Location = new System.Drawing.Point(3, 42);
             this.label13.Name = "label13";
             this.label13.Size = new System.Drawing.Size(72, 13);
             this.label13.TabIndex = 8;
             this.label13.Text = "Frames Count";
             // 
-            // label12
-            // 
-            this.label12.AutoSize = true;
-            this.label12.Location = new System.Drawing.Point(27, 130);
-            this.label12.Name = "label12";
-            this.label12.Size = new System.Drawing.Size(40, 13);
-            this.label12.TabIndex = 8;
-            this.label12.Text = "Length";
-            // 
-            // label11
-            // 
-            this.label11.AutoSize = true;
-            this.label11.Location = new System.Drawing.Point(3, 100);
-            this.label11.Name = "label11";
-            this.label11.Size = new System.Drawing.Size(73, 13);
-            this.label11.TabIndex = 7;
-            this.label11.Text = "Current Frame";
-            // 
             // label8
             // 
             this.label8.AutoSize = true;
-            this.label8.Location = new System.Drawing.Point(11, 71);
+            this.label8.Location = new System.Drawing.Point(18, 9);
             this.label8.Name = "label8";
             this.label8.Size = new System.Drawing.Size(57, 13);
             this.label8.TabIndex = 6;
             this.label8.Text = "Resolution";
             // 
-            // textBoxCurrentFrame
-            // 
-            this.textBoxCurrentFrame.Location = new System.Drawing.Point(82, 97);
-            this.textBoxCurrentFrame.Name = "textBoxCurrentFrame";
-            this.textBoxCurrentFrame.Size = new System.Drawing.Size(100, 20);
-            this.textBoxCurrentFrame.TabIndex = 5;
-            // 
             // textBoxResolution
             // 
-            this.textBoxResolution.Location = new System.Drawing.Point(82, 71);
+            this.textBoxResolution.Location = new System.Drawing.Point(89, 9);
             this.textBoxResolution.Name = "textBoxResolution";
             this.textBoxResolution.Size = new System.Drawing.Size(100, 20);
             this.textBoxResolution.TabIndex = 4;
-            // 
-            // textBoxName
-            // 
-            this.textBoxName.Location = new System.Drawing.Point(82, 45);
-            this.textBoxName.Name = "textBoxName";
-            this.textBoxName.Size = new System.Drawing.Size(100, 20);
-            this.textBoxName.TabIndex = 3;
-            // 
-            // textBoxFQID
-            // 
-            this.textBoxFQID.Location = new System.Drawing.Point(82, 17);
-            this.textBoxFQID.Name = "textBoxFQID";
-            this.textBoxFQID.Size = new System.Drawing.Size(100, 20);
-            this.textBoxFQID.TabIndex = 2;
-            // 
-            // label7
-            // 
-            this.label7.AutoSize = true;
-            this.label7.Location = new System.Drawing.Point(19, 45);
-            this.label7.Name = "label7";
-            this.label7.Size = new System.Drawing.Size(35, 13);
-            this.label7.TabIndex = 1;
-            this.label7.Text = "Name";
-            // 
-            // label6
-            // 
-            this.label6.AutoSize = true;
-            this.label6.Location = new System.Drawing.Point(19, 20);
-            this.label6.Name = "label6";
-            this.label6.Size = new System.Drawing.Size(32, 13);
-            this.label6.TabIndex = 0;
-            this.label6.Text = "FQID";
             // 
             // panel3
             // 
@@ -432,15 +324,15 @@
             this.panel3.Controls.Add(this.textBoxMetadata);
             this.panel3.Controls.Add(this.textBoxSessionCount);
             this.panel3.Controls.Add(this.label9);
-            this.panel3.Location = new System.Drawing.Point(544, 653);
+            this.panel3.Location = new System.Drawing.Point(912, 49);
             this.panel3.Name = "panel3";
-            this.panel3.Size = new System.Drawing.Size(333, 195);
+            this.panel3.Size = new System.Drawing.Size(401, 460);
             this.panel3.TabIndex = 9;
             // 
             // label10
             // 
             this.label10.AutoSize = true;
-            this.label10.Location = new System.Drawing.Point(19, 79);
+            this.label10.Location = new System.Drawing.Point(3, 3);
             this.label10.Name = "label10";
             this.label10.Size = new System.Drawing.Size(77, 13);
             this.label10.TabIndex = 4;
@@ -448,15 +340,16 @@
             // 
             // textBoxMetadata
             // 
-            this.textBoxMetadata.Location = new System.Drawing.Point(3, 95);
+            this.textBoxMetadata.Location = new System.Drawing.Point(0, 23);
             this.textBoxMetadata.Multiline = true;
             this.textBoxMetadata.Name = "textBoxMetadata";
-            this.textBoxMetadata.Size = new System.Drawing.Size(327, 97);
+            this.textBoxMetadata.Size = new System.Drawing.Size(401, 437);
             this.textBoxMetadata.TabIndex = 3;
             // 
             // textBoxSessionCount
             // 
-            this.textBoxSessionCount.Location = new System.Drawing.Point(74, 41);
+            this.textBoxSessionCount.BackColor = System.Drawing.SystemColors.Window;
+            this.textBoxSessionCount.Location = new System.Drawing.Point(301, 0);
             this.textBoxSessionCount.Name = "textBoxSessionCount";
             this.textBoxSessionCount.Size = new System.Drawing.Size(100, 20);
             this.textBoxSessionCount.TabIndex = 2;
@@ -464,7 +357,7 @@
             // label9
             // 
             this.label9.AutoSize = true;
-            this.label9.Location = new System.Drawing.Point(19, 44);
+            this.label9.Location = new System.Drawing.Point(246, 3);
             this.label9.Name = "label9";
             this.label9.Size = new System.Drawing.Size(49, 13);
             this.label9.TabIndex = 1;
@@ -479,7 +372,7 @@
             this.panel4.Controls.Add(this.label17);
             this.panel4.Controls.Add(this.label18);
             this.panel4.Controls.Add(this.pictureBoxBlob3);
-            this.panel4.Location = new System.Drawing.Point(12, 756);
+            this.panel4.Location = new System.Drawing.Point(587, 654);
             this.panel4.Name = "panel4";
             this.panel4.Size = new System.Drawing.Size(245, 87);
             this.panel4.TabIndex = 7;
@@ -534,6 +427,7 @@
             // 
             // pictureBoxBlob3
             // 
+            this.pictureBoxBlob3.BackColor = System.Drawing.SystemColors.ActiveCaption;
             this.pictureBoxBlob3.Location = new System.Drawing.Point(3, 3);
             this.pictureBoxBlob3.Name = "pictureBoxBlob3";
             this.pictureBoxBlob3.Size = new System.Drawing.Size(81, 82);
@@ -550,7 +444,7 @@
             this.panel5.Controls.Add(this.label20);
             this.panel5.Controls.Add(this.label21);
             this.panel5.Controls.Add(this.pictureBoxBlob4);
-            this.panel5.Location = new System.Drawing.Point(277, 756);
+            this.panel5.Location = new System.Drawing.Point(852, 652);
             this.panel5.Name = "panel5";
             this.panel5.Size = new System.Drawing.Size(245, 90);
             this.panel5.TabIndex = 8;
@@ -605,6 +499,7 @@
             // 
             // pictureBoxBlob4
             // 
+            this.pictureBoxBlob4.BackColor = System.Drawing.SystemColors.ActiveCaption;
             this.pictureBoxBlob4.Location = new System.Drawing.Point(3, 3);
             this.pictureBoxBlob4.Name = "pictureBoxBlob4";
             this.pictureBoxBlob4.Size = new System.Drawing.Size(81, 82);
@@ -618,44 +513,47 @@
             this.labelCamaraName.Font = new System.Drawing.Font("Arial", 15.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.labelCamaraName.Location = new System.Drawing.Point(12, 22);
             this.labelCamaraName.Name = "labelCamaraName";
-            this.labelCamaraName.Size = new System.Drawing.Size(81, 24);
+            this.labelCamaraName.Size = new System.Drawing.Size(300, 24);
             this.labelCamaraName.TabIndex = 10;
-            this.labelCamaraName.Text = "label22";
+            this.labelCamaraName.Text = "Waiting Smart Client Signal...";
             // 
             // pictureBoxHeatMap
             // 
+            this.pictureBoxHeatMap.BackColor = System.Drawing.SystemColors.ActiveCaption;
             this.pictureBoxHeatMap.Location = new System.Drawing.Point(263, 49);
             this.pictureBoxHeatMap.Name = "pictureBoxHeatMap";
-            this.pictureBoxHeatMap.Size = new System.Drawing.Size(947, 460);
+            this.pictureBoxHeatMap.Size = new System.Drawing.Size(640, 460);
             this.pictureBoxHeatMap.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
             this.pictureBoxHeatMap.TabIndex = 11;
             this.pictureBoxHeatMap.TabStop = false;
             // 
             // buttonExport
             // 
-            this.buttonExport.Location = new System.Drawing.Point(544, 584);
+            this.buttonExport.BackColor = System.Drawing.SystemColors.ButtonFace;
+            this.buttonExport.Location = new System.Drawing.Point(1161, 515);
             this.buttonExport.Name = "buttonExport";
             this.buttonExport.Size = new System.Drawing.Size(150, 44);
             this.buttonExport.TabIndex = 12;
             this.buttonExport.Text = "Export HeatMap Data";
-            this.buttonExport.UseVisualStyleBackColor = true;
-            this.buttonExport.Click += new System.EventHandler(this.buttonExport_Click);
+            this.buttonExport.UseVisualStyleBackColor = false;
+            this.buttonExport.Click += new System.EventHandler(this.ButtonExport_Click);
             // 
             // button1
             // 
-            this.button1.Location = new System.Drawing.Point(346, 579);
+            this.button1.BackColor = System.Drawing.SystemColors.ButtonFace;
+            this.button1.Location = new System.Drawing.Point(757, 515);
             this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(146, 50);
+            this.button1.Size = new System.Drawing.Size(150, 44);
             this.button1.TabIndex = 13;
             this.button1.Text = "Send Heatmap to SC";
-            this.button1.UseVisualStyleBackColor = true;
-            this.button1.Click += new System.EventHandler(this.button1_Click);
+            this.button1.UseVisualStyleBackColor = false;
+            this.button1.Click += new System.EventHandler(this.Button1_Click);
             // 
             // Main
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1325, 855);
+            this.ClientSize = new System.Drawing.Size(1325, 750);
             this.Controls.Add(this.button1);
             this.Controls.Add(this.buttonExport);
             this.Controls.Add(this.pictureBoxHeatMap);
@@ -669,7 +567,7 @@
             this.Controls.Add(this.pictureBoxProcessed);
             this.Controls.Add(this.pictureBoxOriginal);
             this.Name = "Main";
-            this.Text = "Form1";
+            this.Text = "Analytic - Heatmap - Service";
             ((System.ComponentModel.ISupportInitialize)(this.pictureBoxOriginal)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBoxProcessed)).EndInit();
             this.panelBlob.ResumeLayout(false);
@@ -715,26 +613,15 @@
         private System.Windows.Forms.Label label5;
         private System.Windows.Forms.PictureBox pictureBoxBlob2;
         private System.Windows.Forms.Panel panel2;
-        private System.Windows.Forms.Label label7;
-        private System.Windows.Forms.Label label6;
         private System.Windows.Forms.Panel panel3;
         private System.Windows.Forms.Label label10;
         private System.Windows.Forms.TextBox textBoxMetadata;
         private System.Windows.Forms.TextBox textBoxSessionCount;
         private System.Windows.Forms.Label label9;
-        private System.Windows.Forms.Label label11;
         private System.Windows.Forms.Label label8;
-        private System.Windows.Forms.TextBox textBoxCurrentFrame;
         private System.Windows.Forms.TextBox textBoxResolution;
-        private System.Windows.Forms.TextBox textBoxName;
-        private System.Windows.Forms.TextBox textBoxFQID;
-        private System.Windows.Forms.TextBox textBoxLength;
-        private System.Windows.Forms.Label label12;
         private System.Windows.Forms.TextBox textBoxCount;
-        private System.Windows.Forms.CheckBox checkBoxAspect;
-        private System.Windows.Forms.TextBox textBoxCropRect;
         private System.Windows.Forms.TextBox textBoxDecodingStatus;
-        private System.Windows.Forms.Label label15;
         private System.Windows.Forms.Label label14;
         private System.Windows.Forms.Label label13;
         private System.Windows.Forms.Panel panel4;
