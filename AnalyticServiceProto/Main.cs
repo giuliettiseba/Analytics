@@ -11,10 +11,10 @@ using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Net.NetworkInformation;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Xaml;
 using VideoOS.Platform;
 using VideoOS.Platform.Data;
 using VideoOS.Platform.Live;
@@ -70,8 +70,8 @@ namespace AnalyticServiceProto
             InitializeComponent();
 
             // Test Camera comment on full demo
-            Item _newItem = Configuration.Instance.GetItem(new Guid("d198ae21-1aba-48fa-83d5-f0aa191439f9"), new Guid("5135ba21-f1dc-4321-806a-6ce2017343c0"));
-            OpenStream(_newItem);
+            //Item _newItem = Configuration.Instance.GetItem(new Guid("d198ae21-1aba-48fa-83d5-f0aa191439f9"), new Guid("5135ba21-f1dc-4321-806a-6ce2017343c0"));
+            //OpenStream(_newItem);
 
 
             // Start Metadata Device service
@@ -473,7 +473,7 @@ namespace AnalyticServiceProto
         }
 
         Bitmap bitmapHeatMap;
-        Dictionary<Vector, int> heatmapData;
+        Dictionary<Vector, KeyValuePair<int, DateTime>> heatmapData;
 
         private void paintHeatMap(Blob[] blobs)
         {
@@ -486,7 +486,7 @@ namespace AnalyticServiceProto
             {
 
                 foreach (Blob blob in blobs)
-                    addHeatMapValue((int)blob.CenterOfGravity.X, (int)blob.CenterOfGravity.Y);
+                    addHeatMapValue((int)blob.CenterOfGravity.X, (int)blob.CenterOfGravity.Y, DateTime.Now);
 
             }
             catch (Exception)
@@ -501,7 +501,10 @@ namespace AnalyticServiceProto
         }
 
 
-        const int clusterSize = 10;
+
+
+        const int clusterSize = 5;
+        const int gridSize = 5;
 
 
         /// <summary>
@@ -509,16 +512,20 @@ namespace AnalyticServiceProto
         /// </summary>
         /// <param name="x"></param>
         /// <param name="y"></param>
+        /// 
 
-        private void addHeatMapValue(int x, int y)
+        private const int yellowThreshold = 5;
+        private const int redThreshold = 10;
+
+        private void addHeatMapValue(int x, int y, DateTime timeStamp)
         {
+            x = x - (x % gridSize);
+            y = y - (y % gridSize);
 
             Vector vector = new Vector() { X = x, Y = y };
-
-
-
             int maxNearValue = 0;
             Vector maxVector = vector;
+
             // int value = 1;
             /// Clustering
             /// 
@@ -526,52 +533,67 @@ namespace AnalyticServiceProto
             for (int j = -(clusterSize / 2); j < (clusterSize / 2); j++)
                 for (int i = -(clusterSize / 2); i < (clusterSize / 2); i++)
                 {
-                    int tempValue = 0;
-                    Vector tmpVector = new Vector() { X = x + i, Y = y + j};
+                    KeyValuePair<int, DateTime> tempValue = new KeyValuePair<int, DateTime>(0, timeStamp);
+                    Vector tmpVector = new Vector() { X = x + i, Y = y + j };
 
                     if (heatmapData.TryGetValue(tmpVector, out tempValue))
-                        if (tempValue > maxNearValue)
+                        if (tempValue.Key > maxNearValue)
                         {
-                            maxNearValue = tempValue;
+                            maxNearValue = tempValue.Key;
 
                             maxVector = tmpVector;
                         };
 
                 }
 
+            // Time filter  
+            if (!heatmapData.ContainsKey(maxVector) || (timeStamp - heatmapData[maxVector].Value).TotalSeconds > 20)
+            {
+                heatmapData[maxVector] = new KeyValuePair<int, DateTime>(maxNearValue + 1, timeStamp);
+                Graphics heatmapGraphics = Graphics.FromImage(bitmapHeatMap);
+                Color color;
 
-            /*   int value = 0;
-               if (heatmapData.TryGetValue(vector, out value))
-                   value = value + 1;
+                if (heatmapData[maxVector].Key < yellowThreshold)
+                    color = System.Drawing.Color.Blue;
+                else
+                    if (heatmapData[maxVector].Key < redThreshold) color = System.Drawing.Color.Yellow;
+                else
+                    color = System.Drawing.Color.Red;
 
-               else value = 1;
-
-
-               heatmapData[vector] = value;
-            */
-
-            heatmapData[maxVector] = maxNearValue + 1;
-
-
-            Graphics heatmapGraphics = Graphics.FromImage(bitmapHeatMap);
-
-            Brush brush;
-
-            if (heatmapData[maxVector] < 20) brush = Brushes.Blue;
-            else
-                if (heatmapData[maxVector] < 50) brush = Brushes.Yellow;
-            else
-                brush = Brushes.Red;
-
-            //heatmapGraphics.FillRectangle(brush, maxVector.X, maxVector.Y, 5, 5);
-            heatmapGraphics.FillEllipse(brush, new RectangleF(maxVector.X, maxVector.Y, 10, 10));
+                //Aux Method
+                FillEllipseDifusse(heatmapGraphics, color, (int)maxVector.X, (int)maxVector.Y);
+            }
             pictureBoxHeatMap.Image = bitmapHeatMap;
 
         }
 
+
+        private const int circleSize = 15;
+        private void FillEllipseDifusse(Graphics heatmapGraphics, Color color, int x, int y)
+        {
+
+            // alfa 0 a 255
+
+
+            for (int i = 0; i < circleSize; i = i + 2)
+            {
+                int xx = x - i / 2;
+                int yy = y - i / 2;
+                Pen pen = new Pen(
+                    Color.FromArgb(255 - ((i * 255) / circleSize), color)
+                    );
+                heatmapGraphics.DrawEllipse(pen, xx, yy, i, i);
+            }
+
+            // return heatmapGraphics;
+        }
+
+
+
+
         private void StartHeatMapData()
         {
-            heatmapData = new Dictionary<Vector, int>();
+            heatmapData = new Dictionary<Vector, KeyValuePair<int, DateTime>>();
         }
 
         float i = -50f;
@@ -627,7 +649,6 @@ namespace AnalyticServiceProto
         private OnvifObject CreateOnvifObject(float x, float y, float area, string n, int id)
         {
             area = area / 50;
-            float BoundingBoxSize = 0.01f;
             float r_x = (float)Reciprocal(width);
             float r_y = (float)Reciprocal(height);
             float r_xx = r_x * 2;
@@ -672,16 +693,18 @@ namespace AnalyticServiceProto
 
         private void buttonExport_Click(object sender, EventArgs e)
         {
+            
+            
             DictToCsv(heatmapData, @"C:\Temp\heatMap.cvs");
         }
 
 
-        public static void DictToCsv(Dictionary<Vector, int> dict, string filePath)
+        public static void DictToCsv(Dictionary<Vector, KeyValuePair<int,DateTime>> dict, string filePath)
         {
             try
             {
                 var csvLines = String.Join(Environment.NewLine,
-                       dict.Select(d => d.Key.X + "," + d.Key.Y + "," + d.Value));
+                       dict.Select(d => d.Key.X + "," + d.Key.Y + "," + d.Value.Key + "," + d.Value));
                 Directory.CreateDirectory(Path.GetDirectoryName(filePath));
                 File.WriteAllText(filePath, csvLines);
             }
@@ -689,6 +712,13 @@ namespace AnalyticServiceProto
             {
                 Console.WriteLine(ex.ToString());
             }
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            Bitmap data = (Bitmap) pictureBoxHeatMap.Image;
+            _messageCommunication.TransmitMessage(new VideoOS.Platform.Messaging.Message("heatmapPic", data), null, null, null);
+
         }
 
         private void SendMetadataBox(Blob[] blobs)

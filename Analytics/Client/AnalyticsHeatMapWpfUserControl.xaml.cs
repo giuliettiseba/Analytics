@@ -5,6 +5,10 @@ using Analytics.Background;
 using System.Windows;
 using System;
 using VideoOS.Platform.UI;
+using System.Drawing;
+using System.Windows.Media.Imaging;
+using System.IO;
+using System.Drawing.Imaging;
 
 namespace Analytics.Client
 {
@@ -58,6 +62,12 @@ namespace Analytics.Client
 
             // SetUpApplicationEventListeners();
             SetUpComunicationManager();
+
+
+
+         
+
+
         }
 
 
@@ -69,6 +79,41 @@ namespace Analytics.Client
         {
             MessageCommunicationManager.Start(EnvironmentManager.Instance.MasterSite.ServerId);
             _messageCommunication = MessageCommunicationManager.Get(EnvironmentManager.Instance.MasterSite.ServerId);
+
+
+            // Create a fiter to get messages from Smart Client Plugin
+          Object _heatmapSearchFilter = _messageCommunication.RegisterCommunicationFilter(HeatMapPicHandler, new VideoOS.Platform.Messaging.CommunicationIdFilter("heatmapPic"));
+
+        }
+
+        private object HeatMapPicHandler(Message message, FQID destination, FQID sender)
+        {
+
+
+
+            Bitmap data = (message.Data as Bitmap);
+            
+            this.Dispatcher.Invoke(() =>
+            {
+                heatMapImage.Source = ConverBitmapToBitmapImage(data);
+            });
+
+
+            return null;
+        }
+
+
+        private BitmapImage ConverBitmapToBitmapImage(System.Drawing.Bitmap bmp)
+        {
+
+
+            MemoryStream stream = new MemoryStream();
+            bmp.Save(stream, ImageFormat.Png);
+            BitmapImage bitmapImage = new BitmapImage();
+            bitmapImage.BeginInit();
+            bitmapImage.StreamSource = stream;
+            bitmapImage.EndInit();
+            return bitmapImage;
         }
 
         /// <summary>

@@ -7,7 +7,7 @@
              xmlns:platformclient="clr-namespace:VideoOS.Platform.Client;assembly=VideoOS.Platform"
              mc:Ignorable="d" 
              d:DesignHeight="1000" d:DesignWidth="1000" >
-    <Grid Margin="0,0,-891,-10">
+    <Grid Margin="0,0,-429,176">
         <Grid.RowDefinitions>
             <RowDefinition Height="18"/>
             <RowDefinition Height="*"/>
@@ -26,19 +26,7 @@
         <Label Content="Label" HorizontalAlignment="Left" Margin="10,88,0,0" Grid.Row="1" VerticalAlignment="Top"/>
         <Button Content="Search" HorizontalAlignment="Left" Margin="10,119,0,0" Grid.Row="1" VerticalAlignment="Top" Width="271" Click="Button_Click_1"/>
         <Button x:Name="_selectCameraButton" Content="Select Camera" HorizontalAlignment="Left" Margin="53,30,0,0" Grid.Row="1" VerticalAlignment="Top" Width="228" Click="Button_Click"/>
-        <Image x:Name="pictureBox" HorizontalAlignment="Left" Height="312" Margin="334,30,0,0" Grid.Row="1" VerticalAlignment="Top" Width="392" OpacityMask="White"/>
-        <TextBox x:Name="textConsole" HorizontalAlignment="Left" Height="122" Margin="48,839,0,0" Grid.Row="1" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="902"/>
-        <Image x:Name="blobviewer" HorizontalAlignment="Left" Height="132" Margin="1205,30,0,0" Grid.Row="1" VerticalAlignment="Top" Width="161"/>
-        <Image x:Name="blobviewer2" HorizontalAlignment="Left" Height="132" Margin="1402,30,0,0" Grid.Row="1" VerticalAlignment="Top" Width="161"/>
-        <Image x:Name="blobviewer3" HorizontalAlignment="Left" Height="132" Margin="1616,30,0,0" Grid.Row="1" VerticalAlignment="Top" Width="161"/>
-        <Image x:Name="blobviewer4" HorizontalAlignment="Left" Height="132" Margin="1205,188,0,0" Grid.Row="1" VerticalAlignment="Top" Width="161"/>
-        <Image x:Name="blobviewer5" HorizontalAlignment="Left" Height="132" Margin="1402,188,0,0" Grid.Row="1" VerticalAlignment="Top" Width="161"/>
-        <Image x:Name="blobviewer6" HorizontalAlignment="Left" Height="132" Margin="1616,188,0,0" Grid.Row="1" VerticalAlignment="Top" Width="161"/>
-        <Image x:Name="pictureBoxOriginal" HorizontalAlignment="Left" Height="312" Margin="747,30,0,0" Grid.Row="1" VerticalAlignment="Top" Width="392" OpacityMask="White"/>
-
-
-
-
+        <Image x:Name="heatMapImage" HorizontalAlignment="Left" Height="765" Margin="322,12,0,0" VerticalAlignment="Top" Width="1020" Grid.Row="1"/>
 
     </Grid>
 </platformclient:ViewItemWpfUserControl>
