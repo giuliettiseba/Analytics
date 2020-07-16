@@ -1,14 +1,14 @@
-using VideoOS.Platform.Client;
-using VideoOS.Platform;
-using VideoOS.Platform.Messaging;
 using Analytics.Background;
-using System.Windows;
 using System;
-using VideoOS.Platform.UI;
 using System.Drawing;
-using System.Windows.Media.Imaging;
-using System.IO;
 using System.Drawing.Imaging;
+using System.IO;
+using System.Windows;
+using System.Windows.Media.Imaging;
+using VideoOS.Platform;
+using VideoOS.Platform.Client;
+using VideoOS.Platform.Messaging;
+using VideoOS.Platform.UI;
 
 namespace Analytics.Client
 {
@@ -19,7 +19,6 @@ namespace Analytics.Client
     public partial class AnalyticsHeatMapWpfUserControl : ViewItemWpfUserControl
     {
         #region private fields
-
         private MessageCommunication _messageCommunication;
         private Item _selectItem;
 
@@ -91,7 +90,7 @@ namespace Analytics.Client
         }
 
 
-        private void Button_Click_1(object sender, System.Windows.RoutedEventArgs e)
+        private void SearchData_aButton_Click(object sender, System.Windows.RoutedEventArgs e)
         {
             SearchData data = new SearchData
             {
@@ -106,7 +105,7 @@ namespace Analytics.Client
             try
             {
                 _messageCommunication.TransmitMessage(new VideoOS.Platform.Messaging.Message(AnalyticsDefinition.analyticsHeatMapSearchFilterID, data), null, null, null);
-                MessageBox.Show("Success" + data.Camera + "" + data.ToString());
+                MessageBox.Show(data.Camera +" has been sent to service." );
             }
             catch (Exception)
             {
@@ -114,7 +113,7 @@ namespace Analytics.Client
             }
         }
 
-        private void Button_Click(object sender, RoutedEventArgs e)
+        private void Search_Button_Click(object sender, RoutedEventArgs e)
         {
             ItemPickerForm cameraPiker = new ItemPickerForm
             {

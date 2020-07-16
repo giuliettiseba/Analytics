@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
-using System.Linq;
-using System.Text;
 using VideoOS.Platform;
 using VideoOS.Platform.Client;
 using VideoOS.Platform.Messaging;
@@ -69,7 +67,7 @@ namespace Analytics.Client
                 { "CameraId", cameraItem != null ? cameraItem.FQID.ObjectId.ToString() : Guid.Empty.ToString() }
             };
 
-            ViewAndLayoutItem.InsertViewItemPlugin(0,new AnalyticsWorkSpaceViewItemPlugin(), new Dictionary<String, String>());
+            ViewAndLayoutItem.InsertViewItemPlugin(0, new AnalyticsWorkSpaceViewItemPlugin(), new Dictionary<String, String>());
         }
 
         /// <summary>

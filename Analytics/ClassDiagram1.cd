@@ -1,0 +1,61 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1">
+  <Class Name="Analytics.AnalyticsDefinition">
+    <Position X="1.75" Y="0.5" Width="2.75" />
+    <TypeIdentifier>
+      <HashCode>CBgKQAAAgAAAAAAAAAQCgAQAACAAAGQAQAICIAGGAAA=</HashCode>
+      <FileName>AnalyticsDefinition.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Analytics.Background.AnalyticsBackgroundPlugin">
+    <Position X="5.75" Y="3.75" Width="3.5" />
+    <NestedTypes>
+      <Enum Name="Analytics.Background.AnalyticsBackgroundPlugin.MovementDirected" Collapsed="true">
+        <TypeIdentifier>
+          <NewMemberFileName>Background\AnalyticsBackgroundPlugin.cs</NewMemberFileName>
+        </TypeIdentifier>
+      </Enum>
+    </NestedTypes>
+    <TypeIdentifier>
+      <HashCode>AAAKAAAAAAAAAAAAAAABAAQAAAAAAAAECAACACCABAI=</HashCode>
+      <FileName>Background\AnalyticsBackgroundPlugin.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Analytics.Background.SearchData">
+    <Position X="16" Y="6.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAISAAAAAAACAAAAQAAAAAQAAACAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Background\AnalyticsBackgroundPlugin.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Analytics.Client.AnalyticsHeatMapWpfUserControl" BaseTypeListCollapsed="true">
+    <Position X="8.75" Y="5.75" Width="2.75" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAACABAAAAAAABAEEQAAAAAAAACAACAACAAAA=</HashCode>
+      <FileName>Client\AnalyticsHeatMapWpfUserControl.xaml.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" Collapsed="true" />
+  </Class>
+  <Class Name="Analytics.Client.AnalyticsWorkSpacePlugin">
+    <Position X="6.25" Y="2" Width="3.5" />
+    <TypeIdentifier>
+      <HashCode>AACCEAAAAEAAAAAAAAAAAAQAAgAQAgAAgAACAACAAAA=</HashCode>
+      <FileName>Client\AnalyticsWorkSpacePlugin.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Analytics.Client.AnalyticsWorkSpaceViewItemManager">
+    <Position X="6.75" Y="0.5" Width="2.75" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAACAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Client\AnalyticsWorkSpaceViewItemManager.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Analytics.Client.AnalyticsWorkSpaceViewItemPlugin">
+    <Position X="11.5" Y="4.5" Width="3.75" />
+    <TypeIdentifier>
+      <HashCode>AAACAAAAAAAAAAAAAAQAAARAAAAAAAAAACACAAGAAAA=</HashCode>
+      <FileName>Client\AnalyticsWorkSpaceViewItemPlugin.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Font Name="Segoe UI" Size="9" />
+</ClassDiagram>

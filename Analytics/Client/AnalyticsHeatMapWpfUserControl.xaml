@@ -5,7 +5,8 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:Analytics.Client"
              xmlns:platformclient="clr-namespace:VideoOS.Platform.Client;assembly=VideoOS.Platform"
-             mc:Ignorable="d" d:DesignWidth="1000" Height="508" >
+             mc:Ignorable="d" d:DesignWidth="1000." Height="1000
+                                       " >
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="18"/>
@@ -20,11 +21,11 @@
             <TextBlock Grid.Column="1" x:Name="_nameTextBlock"/>
         </Grid>
         <DatePicker x:Name="initial" HorizontalAlignment="Left" Margin="53,55,0,0" Grid.Row="1" VerticalAlignment="Top" SelectedDateFormat="Long" Width="228"/>
-        <DatePicker x:Name="end" HorizontalAlignment="Left" Margin="53,90,0,0" Grid.Row="1" VerticalAlignment="Top" Width="227"/>
+        <DatePicker x:Name="end" HorizontalAlignment="Left" Margin="53,90,0,0" Grid.Row="1" VerticalAlignment="Top" SelectedDateFormat="Long" Width="228"/>
         <Label Content="Label" HorizontalAlignment="Left" Margin="10,53,0,0" Grid.Row="1" VerticalAlignment="Top"/>
         <Label Content="Label" HorizontalAlignment="Left" Margin="10,88,0,0" Grid.Row="1" VerticalAlignment="Top"/>
-        <Button Content="Search" HorizontalAlignment="Left" Margin="10,119,0,0" Grid.Row="1" VerticalAlignment="Top" Width="271" Click="Button_Click_1"/>
-        <Button x:Name="_selectCameraButton" Content="Select Camera" HorizontalAlignment="Left" Margin="53,30,0,0" Grid.Row="1" VerticalAlignment="Top" Width="228" Click="Button_Click"/>
+        <Button Content="Search" HorizontalAlignment="Left" Margin="10,119,0,0" Grid.Row="1" VerticalAlignment="Top" Width="271" Click="SearchData_aButton_Click"/>
+        <Button x:Name="_selectCameraButton" Content="Select Camera" HorizontalAlignment="Left" Margin="53,30,0,0" Grid.Row="1" VerticalAlignment="Top" Width="228" Click="Search_Button_Click"/>
         <Image x:Name="heatMapImage" HorizontalAlignment="Left" Height="467" Margin="322,12,0,0" VerticalAlignment="Top" Width="664" Grid.Row="1"/>
 
     </Grid>

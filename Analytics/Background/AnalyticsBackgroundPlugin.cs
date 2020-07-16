@@ -1,16 +1,9 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Net.NetworkInformation;
 using System.Threading;
-using System.Threading.Tasks;
-using System.Xml;
 using VideoOS.Platform;
 using VideoOS.Platform.Background;
-using VideoOS.Platform.Client;
-using VideoOS.Platform.Data;
 using VideoOS.Platform.Messaging;
-using VideoOS.Platform.Metadata;
 
 namespace Analytics.Background
 {
@@ -91,31 +84,24 @@ namespace Analytics.Background
         }
 
 
-     
+
         /// <summary>
         /// the thread doing the work
         /// </summary>
         private void Run()
         {
-            
+
             EnvironmentManager.Instance.Log(false, "Analytics Process thread", "Now starting...", null);
 
             while (!_stop)
             {
 
-              
+
                 Thread.Sleep(2000);
             }
             EnvironmentManager.Instance.Log(false, "Analytics background thread", "Now stopping...", null);
             _thread = null;
         }
-
-        private enum MovementDirected
-        {
-            Up, Down, Left, Right
-        }
-
-        
 
         private object HeatMapSearchHandler(Message message, FQID destination, FQID sender)
         {

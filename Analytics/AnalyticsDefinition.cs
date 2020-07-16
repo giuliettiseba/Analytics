@@ -1,14 +1,9 @@
-using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Drawing;
-using System.Reflection;
-using System.Windows.Forms;
-
 using Analytics.Background;
 using Analytics.Client;
+using System;
+using System.Collections.Generic;
+using System.Drawing;
 using VideoOS.Platform;
-using VideoOS.Platform.Admin;
 using VideoOS.Platform.Background;
 using VideoOS.Platform.Client;
 
@@ -24,23 +19,23 @@ namespace Analytics
     /// </summary>
     public class AnalyticsDefinition : PluginDefinition
     {
-        private static System.Drawing.Image _treeNodeImage;
-        private static System.Drawing.Image _topTreeNodeImage;
-
+     
         internal static Guid AnalyticsPluginId = new Guid("5b755dd5-9000-4ecb-ab94-b70cda5a7172");
         internal static Guid AnalyticsKind = new Guid("e652e027-b54a-4962-aaaa-4b5147531996");
 
         internal static Guid AnalyticsBackgroundPlugin = new Guid("5ba60baa-2e8a-42ae-b2b0-5148180e3511");
+        
         internal static Guid AnalyticsWorkSpacePluginId = new Guid("5832af99-e027-477c-b5ed-51459cfb4abf");
         internal static Guid AnalyticsWorkSpaceViewItemPluginId = new Guid("43a615a5-6ca7-4480-8de3-4c094bc3e6b7");
-        internal static Guid AnalyticsWorkSpaceToolbarPluginId = new Guid("22222222-2222-2222-2222-159753222222");
-
-        // Filtro para mensajes desde SC Plugin hacia Background
+   
+        // Message filter
         public static string analyticsHeatMapSearchFilterID = "analyticsHeatMapSearch";
         public static string analyticsHeatMapSendPic = "heatMapPicSent";
 
         #region Private fields
 
+        private static System.Drawing.Image _treeNodeImage;
+        private static System.Drawing.Image _topTreeNodeImage;
 
         //
         // Note that all the plugin are constructed during application start, and the constructors
@@ -214,4 +209,8 @@ namespace Analytics
         }
 
     }
+
+
+
+
 }

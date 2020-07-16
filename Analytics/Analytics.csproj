@@ -81,12 +81,8 @@
       <DependentUpon>AnalyticsHeatMapWpfUserControl.xaml</DependentUpon>
     </Compile>
     <Compile Include="Client\AnalyticsWorkSpacePlugin.cs" />
-    <Compile Include="Client\AnalyticsWorkSpaceToolbarPlugin.cs" />
     <Compile Include="Client\AnalyticsWorkSpaceViewItemManager.cs" />
     <Compile Include="Client\AnalyticsWorkSpaceViewItemPlugin.cs" />
-    <Compile Include="Client\AnalyticsWorkSpaceViewItemWpfUserControl.xaml.cs">
-      <DependentUpon>AnalyticsWorkSpaceViewItemWpfUserControl.xaml</DependentUpon>
-    </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
@@ -116,12 +112,9 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="Client\AnalyticsWorkSpaceViewItemWpfUserControl.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
   </ItemGroup>
   <ItemGroup>
+    <None Include="ClassDiagram1.cd" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
