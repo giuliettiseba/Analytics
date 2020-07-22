@@ -1,17 +1,31 @@
 ﻿using AForge.Imaging;
+using AForge.Imaging.Filters;
+using Microsoft.ML;
+using OnnxObjectDetection;
+using SharpGL;
 using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Forms;
+using System.Windows.Media;
 using VideoOS.Platform;
 using VideoOS.Platform.Data;
 using VideoOS.Platform.Live;
 using VideoOS.Platform.Messaging;
 using VideoOS.Platform.Metadata;
 using VideoOS.Platform.Util.AdaptiveStreaming;
+using Brushes = System.Drawing.Brushes;
+using Color = System.Drawing.Color;
+using FontFamily = System.Drawing.FontFamily;
+using Pen = System.Drawing.Pen;
+using Vector = VideoOS.Platform.Metadata.Vector;
 
 namespace AnalyticServiceProto
 {
@@ -36,6 +50,14 @@ namespace AnalyticServiceProto
 
 
 
+        /// ML
+        private OnnxOutputParser outputParser;
+        private PredictionEngine<ImageInputData, TinyYoloPrediction> tinyYoloPredictionEngine;
+        private PredictionEngine<ImageInputData, CustomVisionPrediction> customVisionPredictionEngine;
+
+
+
+
         private BlobCounter blobCounter;
 
 
@@ -53,9 +75,60 @@ namespace AnalyticServiceProto
         private MessageCommunication _messageCommunication;
         private MetadataHandler metadataHandler;
 
+        private static readonly string modelsDirectory = Path.Combine(Environment.CurrentDirectory, @"ML\OnnxModels");
+
+
+
+        private void LoadModel()
+        {
+            // Check for an Onnx model exported from Custom Vision
+            var customVisionExport = Directory.GetFiles(modelsDirectory, "*.zip").FirstOrDefault();
+
+            // If there is one, use it.
+            if (customVisionExport != null)
+            {
+                var customVisionModel = new CustomVisionModel(customVisionExport);
+                var modelConfigurator = new OnnxModelConfigurator(customVisionModel);
+
+                outputParser = new OnnxOutputParser(customVisionModel);
+                customVisionPredictionEngine = modelConfigurator.GetMlNetPredictionEngine<CustomVisionPrediction>();
+            }
+            else // Otherwise default to Tiny Yolo Onnx model
+            {
+                var tinyYoloModel = new TinyYoloModel(Path.Combine(modelsDirectory, "TinyYolo2_model.onnx"));
+                var modelConfigurator = new OnnxModelConfigurator(tinyYoloModel);
+
+                outputParser = new OnnxOutputParser(tinyYoloModel);
+                tinyYoloPredictionEngine = modelConfigurator.GetMlNetPredictionEngine<TinyYoloPrediction>();
+            }
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         public HeatMapPluginService()
         {
+
+            //load Model 
+            LoadModel();
+
+
             InitializeComponent();
+
 
             // Test Parameters 
             Item _newItem = Configuration.Instance.GetItem(new Guid("d198ae21-1aba-48fa-83d5-f0aa191439f9"), new Guid("5135ba21-f1dc-4321-806a-6ce2017343c0"));
@@ -172,7 +245,7 @@ namespace AnalyticServiceProto
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Could not Init:" + ex.Message);
+                System.Windows.MessageBox.Show("Could not Init:" + ex.Message);
                 _jpegLiveSource = null;
             }
         }
@@ -237,6 +310,18 @@ namespace AnalyticServiceProto
 
                         textBoxDecodingStatus.Text = args.LiveContent.HardwareDecodingStatus;
 
+
+
+                        textBoxRx.Text = rx.ToString();
+                        textBoxRy.Text = ry.ToString();
+                        textBoxRz.Text = rz.ToString();
+
+                        textBoxPx.Text = px.ToString();
+                        textBoxPy.Text = py.ToString();
+                        textBoxPz.Text = pz.ToString();
+
+                        textBoxStep.Text = step.ToString();
+
                         ms.Close();
                         ms.Dispose();
 
@@ -245,10 +330,20 @@ namespace AnalyticServiceProto
 
                         args.LiveContent.Dispose();
 
-                        /// PocessImage
+                        // ParseFrame(newBitmap);
 
                         Bitmap motionObjectsImage = analyticsImageProcessing.ProcessImage(newBitmap);
                         pictureBoxProcessed.Image = motionObjectsImage;
+
+
+                        GetBitmapColorMatix(newBitmap);
+
+
+                        draw3d(unmanagedImage.Width, unmanagedImage.Height, matrix);
+                        // pictureBoxProcessed.Image
+
+                        /// PocessImage
+                        
                         Blob[] blobs = analyticsImageProcessing.GetBlobs(motionObjectsImage, blobCounter);
                         textBoxMetadata.Text = metadataHandler.SendMetadataBox(blobs, _jpegLiveSource.Width, _jpegLiveSource.Height);
                         PaintHeatMap(blobs);
@@ -303,7 +398,7 @@ namespace AnalyticServiceProto
                             Console.WriteLine(r.Message);
                         }
 
-
+                        
                     }
                     else if (args.Exception != null)
                     {
@@ -311,7 +406,7 @@ namespace AnalyticServiceProto
 
                         Bitmap bitmap = new Bitmap(320, 240);
                         Graphics g = Graphics.FromImage(bitmap);
-                        g.FillRectangle(Brushes.Black, 0, 0, bitmap.Width, bitmap.Height);
+                        g.FillRectangle(System.Drawing.Brushes.Black, 0, 0, bitmap.Width, bitmap.Height);
                         g.DrawString("Connection lost to server ...", new Font(FontFamily.GenericMonospace, 12), Brushes.White, new PointF(20, pictureBoxOriginal.Height / 2 - 20));
                         g.Dispose();
                         pictureBoxOriginal.Image = new Bitmap(bitmap, pictureBoxOriginal.Size);
@@ -324,10 +419,130 @@ namespace AnalyticServiceProto
         }
 
 
+        UnmanagedImage unmanagedImage;
+        int[,] matrix;
+        private void GetBitmapColorMatix(Bitmap b1)
+        {
+
+            // create grayscale filter(BT709)
+            Grayscale filter = new Grayscale(0.2125, 0.7154, 0.0721);
+            // apply the filter
+            System.Drawing.Bitmap grayImage = filter.Apply(b1);
+
+            pictureBoxGray.Image = grayImage;
+            unmanagedImage = UnmanagedImage.FromManagedImage(grayImage);
+
+
+            matrix = new int[unmanagedImage.Width, unmanagedImage.Height];
+            for (int x = 0; x < unmanagedImage.Width; x++)
+            {
+
+                for (int y = 0; y < unmanagedImage.Height; y++)
+                {
+                    matrix[x, y] = (int)unmanagedImage.GetPixel(x, y).R;
+                }
+            }
+
+        }
+
+        private void ParseFrame(Bitmap bitmap)
+        {
+            if (customVisionPredictionEngine == null && tinyYoloPredictionEngine == null)
+                return;
+
+            var frame = new ImageInputData { Image = bitmap };
+            var filteredBoxes = DetectObjectsUsingModel(frame);
+
+            DrawOverlays(bitmap, filteredBoxes, pictureBoxGray.Height, pictureBoxGray.Width);
+
+        }
+
+        private void DrawOverlays(Bitmap bitmap, List<OnnxObjectDetection.BoundingBox> filteredBoxes, double originalHeight, double originalWidth)
+        {
+            //WebCamCanvas.Children.Clear();
+
+            //    pictureBoxProcessed.Image = bitmap;
+
+            System.Drawing.Graphics graphics = System.Drawing.Graphics.FromImage(bitmap);
+
+
+            foreach (var box in filteredBoxes)
+            {
+                // process output boxes
+                double x = Math.Max(box.Dimensions.X, 0);
+                double y = Math.Max(box.Dimensions.Y, 0);
+                double width = Math.Min(originalWidth - x, box.Dimensions.Width);
+                double height = Math.Min(originalHeight - y, box.Dimensions.Height);
+
+                // fit to current image size
+                x = originalWidth * x / ImageSettings.imageWidth;
+                y = originalHeight * y / ImageSettings.imageHeight;
+                width = originalWidth * width / ImageSettings.imageWidth;
+                height = originalHeight * height / ImageSettings.imageHeight;
+
+                graphics.DrawRectangle(System.Drawing.Pens.Blue, 0, 0, (float)width, (float)height);
+
+                /*   var boxColor = box.BoxColor.ToMediaColor();
+
+                   var objBox = new System.Windows.Shapes.Rectangle
+                   {
+                       Width = width,
+                       Height = height,
+                       Fill = new SolidColorBrush(Colors.Transparent),
+                       Stroke = new SolidColorBrush(boxColor),
+                       StrokeThickness = 2.0,
+                       Margin = new Thickness(x, y, 0, 0)
+                   };*/
+
+                /*
+                var objDescription = new TextBlock
+                {
+                    Margin = new Thickness(x + 4, y + 4, 0, 0),
+                    Text = box.Description,
+                    FontWeight = FontWeights.Bold,
+                    Width = 126,
+                    Height = 21,
+                    TextAlignment = TextAlignment.Center
+                };
+
+                var objDescriptionBackground = new System.Windows.Shapes.Rectangle
+                {
+                    Width = 134,
+                    Height = 29,
+                    Fill = new SolidColorBrush(boxColor),
+                    Margin = new Thickness(x, y, 0, 0)
+                };
+
+                */
+
+
+
+
+                /*    WebCamCanvas.Children.Add(objDescriptionBackground);
+                    WebCamCanvas.Children.Add(objDescription);
+                    WebCamCanvas.Children.Add(objBox);
+                */
+
+            }
+            pictureBoxGray.Image = bitmap;
+        }
+
+
+        public List<OnnxObjectDetection.BoundingBox> DetectObjectsUsingModel(ImageInputData imageInputData)
+        {
+            var labels = customVisionPredictionEngine?.Predict(imageInputData).PredictedLabels ?? tinyYoloPredictionEngine?.Predict(imageInputData).PredictedLabels;
+            var boundingBoxes = outputParser.ParseOutputs(labels);
+            var filteredBoxes = outputParser.FilterBoundingBoxes(boundingBoxes, 5, 0.5f);
+            return filteredBoxes;
+        }
+
+
+
+
         private void PaintHeatMap(Blob[] blobs)
         {
 
-            
+
             if (bitmapHeatMap == null && referenceBitmap != null) bitmapHeatMap = new Bitmap(referenceBitmap);
             if (heatmapData == null) heatmapData = new Dictionary<Vector, KeyValuePair<int, DateTime>>();
             try
@@ -386,7 +601,7 @@ namespace AnalyticServiceProto
                 //Paint Aux Method
                 FillEllipseDifusse(heatmapGraphics, color, (int)maxVector.X, (int)maxVector.Y);
             }
-            pictureBoxHeatMap.Image = bitmapHeatMap;
+          //  pictureBoxHeatMap.Image = bitmapHeatMap;
         }
 
         private void FillEllipseDifusse(Graphics heatmapGraphics, Color color, int x, int y)
@@ -425,10 +640,163 @@ namespace AnalyticServiceProto
 
         private void SendHeatMap_Button_Click(object sender, EventArgs e)
         {
-            Bitmap data = (Bitmap)pictureBoxHeatMap.Image;
-            _messageCommunication.TransmitMessage(new VideoOS.Platform.Messaging.Message("heatmapPic", data), null, null, null);
+          //  Bitmap data = (Bitmap)pictureBoxHeatMap.Image;
+         //   _messageCommunication.TransmitMessage(new VideoOS.Platform.Messaging.Message("heatmapPic", data), null, null, null);
         }
 
 
+        int step = 1;
+
+        float rx = 119;
+        float ry = 1;
+        float rz = 21;
+
+        float px = -1.2f;
+        float py = 0.5f;
+        float pz = -5.6f;
+
+
+
+        OpenGL gl;
+        
+
+        private void draw3d(int width, int height, int[,] matrix)
+        {
+            //  Get the OpenGL object, just to clean up the code.
+
+            gl = this.openGLControl1.OpenGL;
+            gl.Clear(OpenGL.GL_COLOR_BUFFER_BIT | OpenGL.GL_DEPTH_BUFFER_BIT);  // Clear The Screen And The Depth Buffer
+            gl.LoadIdentity();                  // Reset The View
+
+
+            gl.Translate(px, py, pz);               // Move Left And Into The Screen
+            gl.Rotate(rx, ry, rz);
+             //  gl.Begin(OpenGL.GL_LINES);               
+             gl.Begin(OpenGL.GL_POINTS);                  
+            //gl.Begin(OpenGL.GL_TRIANGLES);              
+           // gl.Begin(OpenGL.GL_QUADS);
+
+
+            for (int x = 0; x < width; x += step)
+            {
+                for (int y = 0; y < height; y += step)
+                {
+                    float inte = matrix[x, y] / 255f;
+                    gl.Color(inte, inte, inte);
+
+                   //     gl.Vertex(x / 200f, y / 200f, 0);
+                    gl.Vertex(x / 200f, y / 200f, -inte);
+
+                }
+            }
+            gl.End();
+
+            gl.Flush();
+
+
+        }
+        private void redraw()
+        {
+            draw3d(unmanagedImage.Width, unmanagedImage.Height, matrix);
+
+        }
+
+
+        private void button9_Click(object sender, EventArgs e)
+        {
+            rx--;
+            redraw();
+        }
+
+        private void button7_Click(object sender, EventArgs e)
+        {
+            ry--;
+            redraw();
+        }
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+            rz--;
+            redraw();
+        }
+
+        private void HeatMapPluginService_Load(object sender, EventArgs e)
+        {
+
+        }
+
+        private void button8_Click(object sender, EventArgs e)
+        {
+            rx++;
+            redraw();
+        }
+
+        private void button6_Click(object sender, EventArgs e)
+        {
+            ry++; 
+            redraw();
+        }
+
+        private void button5_Click(object sender, EventArgs e)
+        {
+            rz++;
+            redraw();
+        }
+
+        private void button11_Click(object sender, EventArgs e)
+        {
+            px -= 0.2f;
+        }
+
+        private void button10_Click(object sender, EventArgs e)
+        {
+            py -= 0.2f;
+            redraw();
+        }
+
+        private void button3_Click(object sender, EventArgs e)
+        {
+            pz -= 0.2f;
+            redraw();
+        }
+
+        private void button13_Click(object sender, EventArgs e)
+        {
+            px += 0.2f;
+            redraw();
+        }
+
+        private void button12_Click(object sender, EventArgs e)
+        {
+py += 0.2f;
+            redraw();
+        }
+
+        private void button4_Click(object sender, EventArgs e)
+        {
+            pz += 0.2f;
+            redraw();
+        }
+
+        private void button14_Click(object sender, EventArgs e)
+        {
+            step++;
+            redraw();
+        }
+
+        private void button15_Click(object sender, EventArgs e)
+        {
+            if (step > 1) step--;
+            redraw();
+        }
     }
+
+    internal static class ColorExtensions
+    {
+        internal static System.Windows.Media.Color ToMediaColor(this System.Drawing.Color drawingColor)
+        {
+            return System.Windows.Media.Color.FromArgb(drawingColor.A, drawingColor.R, drawingColor.G, drawingColor.B);
+        }
+    }
+
 }
