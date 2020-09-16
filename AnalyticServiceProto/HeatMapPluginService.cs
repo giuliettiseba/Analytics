@@ -1,5 +1,6 @@
 ﻿using AForge.Imaging;
 using AForge.Imaging.Filters;
+using AForge.Vision.Motion;
 using Microsoft.ML;
 using OnnxObjectDetection;
 using SharpGL;
@@ -7,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Drawing;
+using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -124,7 +126,7 @@ namespace AnalyticServiceProto
         {
 
             //load Model 
-            LoadModel();
+            //LoadModel();
 
 
             InitializeComponent();
@@ -256,6 +258,10 @@ namespace AnalyticServiceProto
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
+        /// 
+
+        Bitmap background2 = null;
+        Bitmap foreground = null;
         private void JpegLiveSource1LiveNotificationEvent(object sender, EventArgs e)
         {
             if (this.InvokeRequired)
@@ -330,32 +336,78 @@ namespace AnalyticServiceProto
 
                         args.LiveContent.Dispose();
 
-                        // ParseFrame(newBitmap);
-
-                        Bitmap motionObjectsImage = analyticsImageProcessing.ProcessImage(newBitmap);
-                        pictureBoxProcessed.Image = motionObjectsImage;
-
-
-                        GetBitmapColorMatix(newBitmap);
-
-
-                        draw3d(unmanagedImage.Width, unmanagedImage.Height, matrix);
-                        // pictureBoxProcessed.Image
-
-                        /// PocessImage
-                        
-                        Blob[] blobs = analyticsImageProcessing.GetBlobs(motionObjectsImage, blobCounter);
-                        textBoxMetadata.Text = metadataHandler.SendMetadataBox(blobs, _jpegLiveSource.Width, _jpegLiveSource.Height);
-                        PaintHeatMap(blobs);
-
-
-                        /// Debug tool
+                        Grayscale gfilter = new Grayscale(0.2125, 0.7154, 0.0721);
+                        Bitmap grayImage = gfilter.Apply(newBitmap);
+                        pictureBoxGray.Image = grayImage;
 
                         try
                         {
-                            if (blobs[0] != null)
+
+                            if (background == null)
                             {
-                                blobCounter.ExtractBlobsImage(motionObjectsImage, blobs[0], false);
+                                background = analyticsImageProcessing.GetBackGound(grayImage);
+
+
+                                Bitmap bitmap = new Bitmap(320, 240);
+                                Graphics g = Graphics.FromImage(bitmap);
+                                g.FillRectangle(System.Drawing.Brushes.Black, 0, 0, bitmap.Width, bitmap.Height);
+                                g.DrawString("Processing Background...", new Font(FontFamily.GenericMonospace, 12), Brushes.White, new PointF(20, pictureBoxOriginal.Height / 2 - 20));
+                                g.Dispose();
+                                pictureBoxBackgound.Image = new Bitmap(bitmap, pictureBoxOriginal.Size);
+                                bitmap.Dispose();
+
+
+                            }
+
+                            else if (background2 == null)
+                            {
+                                unmanagedImage = UnmanagedImage.FromManagedImage(background);
+                                background2 = gfilter.Apply(background);
+                                pictureBoxBackgound.Image = background;
+                            }
+                            else
+                            {
+
+                                foreground = analyticsImageProcessing.diff(grayImage, background2);
+
+                                Threshold filter = new Threshold(100);
+                                // apply the filter
+                                filter.ApplyInPlace(foreground);
+
+                                // create filter
+
+                             //   short[,] se = { { 5, 5 } }; 
+                                Dilatation dfilter = new Dilatation();
+                                // apply the filter
+
+                                dfilter.ApplyInPlace(foreground);
+                                dfilter.ApplyInPlace(foreground);
+                                dfilter.ApplyInPlace(foreground);
+                                dfilter.ApplyInPlace(foreground);
+                                dfilter.ApplyInPlace(foreground);
+
+                                pictureBoxProcessed.Image = foreground;
+
+
+
+                            }
+
+
+
+                            /// PocessImage
+                            if (foreground != null) { 
+                            Blob[] blobs = analyticsImageProcessing.GetBlobs(foreground, blobCounter);
+                            textBoxMetadata.Text = metadataHandler.SendMetadataBox(blobs, _jpegLiveSource.Width, _jpegLiveSource.Height);
+                            PaintHeatMap(blobs);
+                                pictureBoxHeatmap.Image = bitmapHeatMap;
+
+
+                            /// Debug tool
+
+
+                                if (blobs[0] != null)
+                            {
+                                blobCounter.ExtractBlobsImage(foreground, blobs[0], false);
                                 pictureBoxBlob1.Image = blobs[0].Image.ToManagedImage();
                                 textBoxAreaBlob1.Text = blobs[0].Area.ToString();
                                 textBoxXBlob1.Text = blobs[0].CenterOfGravity.X.ToString();
@@ -364,7 +416,7 @@ namespace AnalyticServiceProto
 
                             if (blobs[1] != null)
                             {
-                                blobCounter.ExtractBlobsImage(motionObjectsImage, blobs[1], false);
+                                blobCounter.ExtractBlobsImage(foreground, blobs[1], false);
                                 pictureBoxBlob2.Image = blobs[1].Image.ToManagedImage();
                                 textBoxAreaBlob2.Text = blobs[1].Area.ToString();
                                 textBoxXBlob2.Text = blobs[1].CenterOfGravity.X.ToString();
@@ -374,7 +426,7 @@ namespace AnalyticServiceProto
 
                             if (blobs[2] != null)
                             {
-                                blobCounter.ExtractBlobsImage(motionObjectsImage, blobs[2], false);
+                                blobCounter.ExtractBlobsImage(foreground, blobs[2], false);
                                 pictureBoxBlob3.Image = blobs[2].Image.ToManagedImage();
                                 textBoxAreaBlob3.Text = blobs[2].Area.ToString();
                                 textBoxXBlob3.Text = blobs[2].CenterOfGravity.X.ToString();
@@ -384,13 +436,13 @@ namespace AnalyticServiceProto
 
                             if (blobs[3] != null)
                             {
-                                blobCounter.ExtractBlobsImage(motionObjectsImage, blobs[3], false);
+                                blobCounter.ExtractBlobsImage(foreground, blobs[3], false);
                                 pictureBoxBlob4.Image = blobs[3].Image.ToManagedImage();
                                 textBoxAreaBlob4.Text = blobs[3].Area.ToString();
                                 textBoxXBlob4.Text = blobs[3].CenterOfGravity.X.ToString();
                                 textBoxYBlob4.Text = blobs[3].CenterOfGravity.Y.ToString();
                             }
-
+                            }
                         }
                         catch (Exception r)
                         {
@@ -398,7 +450,7 @@ namespace AnalyticServiceProto
                             Console.WriteLine(r.Message);
                         }
 
-                        
+
                     }
                     else if (args.Exception != null)
                     {
@@ -418,6 +470,27 @@ namespace AnalyticServiceProto
             }
         }
 
+
+
+
+        private void DrawBoxes(Bitmap bitmap, System.Drawing.Rectangle[] boxes)
+        {
+            //WebCamCanvas.Children.Clear();
+
+            //    pictureBoxProcessed.Image = bitmap;
+
+            System.Drawing.Graphics graphics = System.Drawing.Graphics.FromImage(bitmap);
+
+            if (boxes != null)
+                foreach (System.Drawing.Rectangle box in boxes)
+                {
+
+                    graphics.DrawRectangle(System.Drawing.Pens.Blue, box);
+
+
+                }
+            pictureBoxGray.Image = bitmap;
+        }
 
         UnmanagedImage unmanagedImage;
         int[,] matrix;
@@ -457,6 +530,9 @@ namespace AnalyticServiceProto
 
         }
 
+
+
+
         private void DrawOverlays(Bitmap bitmap, List<OnnxObjectDetection.BoundingBox> filteredBoxes, double originalHeight, double originalWidth)
         {
             //WebCamCanvas.Children.Clear();
@@ -482,46 +558,6 @@ namespace AnalyticServiceProto
 
                 graphics.DrawRectangle(System.Drawing.Pens.Blue, 0, 0, (float)width, (float)height);
 
-                /*   var boxColor = box.BoxColor.ToMediaColor();
-
-                   var objBox = new System.Windows.Shapes.Rectangle
-                   {
-                       Width = width,
-                       Height = height,
-                       Fill = new SolidColorBrush(Colors.Transparent),
-                       Stroke = new SolidColorBrush(boxColor),
-                       StrokeThickness = 2.0,
-                       Margin = new Thickness(x, y, 0, 0)
-                   };*/
-
-                /*
-                var objDescription = new TextBlock
-                {
-                    Margin = new Thickness(x + 4, y + 4, 0, 0),
-                    Text = box.Description,
-                    FontWeight = FontWeights.Bold,
-                    Width = 126,
-                    Height = 21,
-                    TextAlignment = TextAlignment.Center
-                };
-
-                var objDescriptionBackground = new System.Windows.Shapes.Rectangle
-                {
-                    Width = 134,
-                    Height = 29,
-                    Fill = new SolidColorBrush(boxColor),
-                    Margin = new Thickness(x, y, 0, 0)
-                };
-
-                */
-
-
-
-
-                /*    WebCamCanvas.Children.Add(objDescriptionBackground);
-                    WebCamCanvas.Children.Add(objDescription);
-                    WebCamCanvas.Children.Add(objBox);
-                */
 
             }
             pictureBoxGray.Image = bitmap;
@@ -601,7 +637,7 @@ namespace AnalyticServiceProto
                 //Paint Aux Method
                 FillEllipseDifusse(heatmapGraphics, color, (int)maxVector.X, (int)maxVector.Y);
             }
-          //  pictureBoxHeatMap.Image = bitmapHeatMap;
+            //  pictureBoxHeatMap.Image = bitmapHeatMap;
         }
 
         private void FillEllipseDifusse(Graphics heatmapGraphics, Color color, int x, int y)
@@ -640,8 +676,8 @@ namespace AnalyticServiceProto
 
         private void SendHeatMap_Button_Click(object sender, EventArgs e)
         {
-          //  Bitmap data = (Bitmap)pictureBoxHeatMap.Image;
-         //   _messageCommunication.TransmitMessage(new VideoOS.Platform.Messaging.Message("heatmapPic", data), null, null, null);
+            //  Bitmap data = (Bitmap)pictureBoxHeatMap.Image;
+            //   _messageCommunication.TransmitMessage(new VideoOS.Platform.Messaging.Message("heatmapPic", data), null, null, null);
         }
 
 
@@ -658,7 +694,7 @@ namespace AnalyticServiceProto
 
 
         OpenGL gl;
-        
+        private Bitmap background;
 
         private void draw3d(int width, int height, int[,] matrix)
         {
@@ -671,10 +707,10 @@ namespace AnalyticServiceProto
 
             gl.Translate(px, py, pz);               // Move Left And Into The Screen
             gl.Rotate(rx, ry, rz);
-             //  gl.Begin(OpenGL.GL_LINES);               
-             gl.Begin(OpenGL.GL_POINTS);                  
+            //  gl.Begin(OpenGL.GL_LINES);               
+            gl.Begin(OpenGL.GL_POINTS);
             //gl.Begin(OpenGL.GL_TRIANGLES);              
-           // gl.Begin(OpenGL.GL_QUADS);
+            // gl.Begin(OpenGL.GL_QUADS);
 
 
             for (int x = 0; x < width; x += step)
@@ -684,7 +720,7 @@ namespace AnalyticServiceProto
                     float inte = matrix[x, y] / 255f;
                     gl.Color(inte, inte, inte);
 
-                   //     gl.Vertex(x / 200f, y / 200f, 0);
+                    //     gl.Vertex(x / 200f, y / 200f, 0);
                     gl.Vertex(x / 200f, y / 200f, -inte);
 
                 }
@@ -733,7 +769,7 @@ namespace AnalyticServiceProto
 
         private void button6_Click(object sender, EventArgs e)
         {
-            ry++; 
+            ry++;
             redraw();
         }
 
@@ -768,7 +804,7 @@ namespace AnalyticServiceProto
 
         private void button12_Click(object sender, EventArgs e)
         {
-py += 0.2f;
+            py += 0.2f;
             redraw();
         }
 

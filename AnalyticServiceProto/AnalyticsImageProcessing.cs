@@ -1,4 +1,4 @@
-﻿using AForge.Imaging; 
+﻿using AForge.Imaging;
 using AForge.Imaging.Filters;
 using System;
 using System.Collections.Generic;
@@ -41,7 +41,7 @@ namespace AnalyticServiceProto
             }
             if (backgroundFrame == null)
             {
-                
+
 
                 // create initial backgroung image
                 BitmapData bitmapDataBackGround = image.LockBits(
@@ -89,13 +89,25 @@ namespace AnalyticServiceProto
 
 
 
+
+
+        public Bitmap diff(Bitmap frame, Bitmap background)
+        {
+            UnmanagedImage unmanagedframe = UnmanagedImage.FromManagedImage(frame);
+            UnmanagedImage unmanagedbackground = UnmanagedImage.FromManagedImage(background);
+
+            differenceFilter.UnmanagedOverlayImage = unmanagedbackground;
+            // // apply difference filter
+            return differenceFilter.Apply(unmanagedframe).ToManagedImage();
+        }
+
         public Blob[] GetBlobs(Bitmap image, BlobCounter blobCounter)
         {
 
             // process blobs
             blobCounter.FilterBlobs = true;
-            blobCounter.MaxHeight = 100;
-            blobCounter.MaxWidth = 100;
+            blobCounter.MaxHeight = 150;
+            blobCounter.MaxWidth = 150;
 
             blobCounter.ProcessImage(image);
             Blob[] blobs = blobCounter.GetObjectsInformation();
@@ -105,7 +117,161 @@ namespace AnalyticServiceProto
         }
 
 
-       
+        static int no = 120;
+        Bitmap[] lastFrames = new Bitmap[no];
+        int contador = 0;
+        bool full = false;
+        int[,] matrixAvg = null;
+
+        int i = 0;
+        internal Bitmap GetBackGound(Bitmap newBitmap)
+        {
+              if (contador++ == 240)
+              {
+                  lastFrames = new Bitmap[no];
+                  full = false; matrixAvg = null;
+                  contador = 0;
+                  i = 0;
+              }
+            
+            if (!full)
+            {
+                lastFrames[i++] = newBitmap;
+            }
+
+            if (i == no) full = true;
+
+
+            if (full && matrixAvg == null)
+            {
+                UnmanagedImage unmanagedImage = UnmanagedImage.FromManagedImage(lastFrames[0]);
+                matrixAvg = GetMatrix(unmanagedImage);
+
+
+
+
+
+
+
+
+                for (int t = 1; t < no; t++)
+                {
+
+                    unmanagedImage = UnmanagedImage.FromManagedImage(lastFrames[t]);
+                    int[,] matrix = GetMatrix(unmanagedImage);
+
+                    for (int row = 0; row < matrix.GetLength(0); row++)
+                    {
+                        for (int col = 0; col < matrix.GetLength(1); col++)
+                        {
+
+
+                            matrixAvg[row, col] = (matrixAvg[row, col] + matrix[row, col]);
+                        }
+                    }
+                }
+
+
+                for (int row = 0; row < matrixAvg.GetLength(0); row++)
+                {
+                    for (int col = 0; col < matrixAvg.GetLength(1); col++)
+                    {
+
+
+                        matrixAvg[row, col] = matrixAvg[row, col] / no;
+                    }
+                }
+
+            }
+
+            if (matrixAvg != null)
+            {
+                return DrawGrayScaleMatrix(matrixAvg);
+            }
+
+
+
+            return null;
+        }
+
+
+
+
+
+        public Bitmap DrawGrayScaleMatrix(int[,] matrix)
+        {
+            int width = matrix.GetLength(0);
+            int height = matrix.GetLength(1);
+
+            Bitmap bm = new Bitmap(width, height);
+            using (Graphics gr = Graphics.FromImage(bm))
+            {
+
+                {
+                    for (int x = 1; x < width; x += 1)
+                    {
+                        for (int y = 1; y < height; y += 1)
+                        {
+                            Brush myBrush = new System.Drawing.SolidBrush(Color.FromArgb(matrix[x, y], matrix[x, y], matrix[x, y]));
+                            gr.FillRectangle(myBrush, x, y, 1, 1);
+                        }
+                    }
+                }
+            }
+
+
+            return bm;
+        }
+
+
+
+
+        public int[,] GetMatrix(UnmanagedImage unmanagedImage)
+        {
+
+            int[,] matrix = new int[unmanagedImage.Width, unmanagedImage.Height];
+            for (int x = 0; x < unmanagedImage.Width; x++)
+            {
+                for (int y = 0; y < unmanagedImage.Height; y++)
+                {
+                    matrix[x, y] = (int)unmanagedImage.GetPixel(x, y).R;
+                }
+            }
+            return matrix;
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     }
 }

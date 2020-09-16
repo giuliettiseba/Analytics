@@ -103,6 +103,8 @@
             this.button6 = new System.Windows.Forms.Button();
             this.button5 = new System.Windows.Forms.Button();
             this.pictureBoxProcessed = new System.Windows.Forms.PictureBox();
+            this.pictureBoxBackgound = new System.Windows.Forms.PictureBox();
+            this.pictureBoxHeatmap = new System.Windows.Forms.PictureBox();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBoxOriginal)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBoxGray)).BeginInit();
             this.panelBlob.SuspendLayout();
@@ -117,6 +119,8 @@
             ((System.ComponentModel.ISupportInitialize)(this.pictureBoxBlob4)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.openGLControl1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBoxProcessed)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBoxBackgound)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBoxHeatmap)).BeginInit();
             this.SuspendLayout();
             // 
             // pictureBoxOriginal
@@ -350,7 +354,7 @@
             this.panel3.Controls.Add(this.textBoxMetadata);
             this.panel3.Controls.Add(this.textBoxSessionCount);
             this.panel3.Controls.Add(this.label9);
-            this.panel3.Location = new System.Drawing.Point(912, 49);
+            this.panel3.Location = new System.Drawing.Point(1022, 49);
             this.panel3.Name = "panel3";
             this.panel3.Size = new System.Drawing.Size(401, 460);
             this.panel3.TabIndex = 9;
@@ -546,7 +550,7 @@
             // buttonExport
             // 
             this.buttonExport.BackColor = System.Drawing.SystemColors.ButtonFace;
-            this.buttonExport.Location = new System.Drawing.Point(1161, 515);
+            this.buttonExport.Location = new System.Drawing.Point(1259, 563);
             this.buttonExport.Name = "buttonExport";
             this.buttonExport.Size = new System.Drawing.Size(150, 44);
             this.buttonExport.TabIndex = 12;
@@ -557,7 +561,7 @@
             // button1
             // 
             this.button1.BackColor = System.Drawing.SystemColors.ButtonFace;
-            this.button1.Location = new System.Drawing.Point(918, 527);
+            this.button1.Location = new System.Drawing.Point(1103, 564);
             this.button1.Name = "button1";
             this.button1.Size = new System.Drawing.Size(150, 44);
             this.button1.TabIndex = 13;
@@ -569,12 +573,12 @@
             // 
             this.openGLControl1.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.openGLControl1.DrawFPS = false;
-            this.openGLControl1.Location = new System.Drawing.Point(267, 52);
+            this.openGLControl1.Location = new System.Drawing.Point(779, 550);
             this.openGLControl1.Name = "openGLControl1";
             this.openGLControl1.OpenGLVersion = SharpGL.Version.OpenGLVersion.OpenGL2_1;
             this.openGLControl1.RenderContextType = SharpGL.RenderContextType.DIBSection;
             this.openGLControl1.RenderTrigger = SharpGL.RenderTrigger.TimerBased;
-            this.openGLControl1.Size = new System.Drawing.Size(631, 457);
+            this.openGLControl1.Size = new System.Drawing.Size(230, 72);
             this.openGLControl1.TabIndex = 14;
             // 
             // label6
@@ -796,18 +800,38 @@
             // pictureBoxProcessed
             // 
             this.pictureBoxProcessed.BackColor = System.Drawing.SystemColors.ActiveCaption;
-            this.pictureBoxProcessed.Location = new System.Drawing.Point(587, 515);
+            this.pictureBoxProcessed.Location = new System.Drawing.Point(270, 49);
             this.pictureBoxProcessed.Name = "pictureBoxProcessed";
-            this.pictureBoxProcessed.Size = new System.Drawing.Size(171, 133);
+            this.pictureBoxProcessed.Size = new System.Drawing.Size(258, 219);
             this.pictureBoxProcessed.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
             this.pictureBoxProcessed.TabIndex = 1;
             this.pictureBoxProcessed.TabStop = false;
+            // 
+            // pictureBoxBackgound
+            // 
+            this.pictureBoxBackgound.BackColor = System.Drawing.SystemColors.ActiveCaption;
+            this.pictureBoxBackgound.Location = new System.Drawing.Point(546, 49);
+            this.pictureBoxBackgound.Name = "pictureBoxBackgound";
+            this.pictureBoxBackgound.Size = new System.Drawing.Size(257, 219);
+            this.pictureBoxBackgound.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
+            this.pictureBoxBackgound.TabIndex = 1;
+            this.pictureBoxBackgound.TabStop = false;
+            // 
+            // pictureBoxHeatmap
+            // 
+            this.pictureBoxHeatmap.BackColor = System.Drawing.SystemColors.ActiveCaption;
+            this.pictureBoxHeatmap.Location = new System.Drawing.Point(270, 290);
+            this.pictureBoxHeatmap.Name = "pictureBoxHeatmap";
+            this.pictureBoxHeatmap.Size = new System.Drawing.Size(257, 219);
+            this.pictureBoxHeatmap.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
+            this.pictureBoxHeatmap.TabIndex = 1;
+            this.pictureBoxHeatmap.TabStop = false;
             // 
             // HeatMapPluginService
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1325, 750);
+            this.ClientSize = new System.Drawing.Size(1437, 750);
             this.Controls.Add(this.label6);
             this.Controls.Add(this.label7);
             this.Controls.Add(this.label11);
@@ -843,6 +867,8 @@
             this.Controls.Add(this.panel1);
             this.Controls.Add(this.panelBlob);
             this.Controls.Add(this.pictureBoxProcessed);
+            this.Controls.Add(this.pictureBoxHeatmap);
+            this.Controls.Add(this.pictureBoxBackgound);
             this.Controls.Add(this.pictureBoxGray);
             this.Controls.Add(this.pictureBoxOriginal);
             this.Name = "HeatMapPluginService";
@@ -868,6 +894,8 @@
             ((System.ComponentModel.ISupportInitialize)(this.pictureBoxBlob4)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.openGLControl1)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBoxProcessed)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBoxBackgound)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBoxHeatmap)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -950,6 +978,8 @@
         private System.Windows.Forms.Button button6;
         private System.Windows.Forms.Button button5;
         private System.Windows.Forms.PictureBox pictureBoxProcessed;
+        private System.Windows.Forms.PictureBox pictureBoxBackgound;
+        private System.Windows.Forms.PictureBox pictureBoxHeatmap;
     }
 }
 
