@@ -1,4 +1,5 @@
-﻿using AForge.Imaging;
+﻿using AForge;
+using AForge.Imaging;
 using AForge.Imaging.Filters;
 using AForge.Vision.Motion;
 using Microsoft.ML;
@@ -53,10 +54,10 @@ namespace AnalyticServiceProto
 
 
         /// ML
-        private OnnxOutputParser outputParser;
+       /* private OnnxOutputParser outputParser;
         private PredictionEngine<ImageInputData, TinyYoloPrediction> tinyYoloPredictionEngine;
         private PredictionEngine<ImageInputData, CustomVisionPrediction> customVisionPredictionEngine;
-
+       */
 
 
 
@@ -77,10 +78,10 @@ namespace AnalyticServiceProto
         private MessageCommunication _messageCommunication;
         private MetadataHandler metadataHandler;
 
-        private static readonly string modelsDirectory = Path.Combine(Environment.CurrentDirectory, @"ML\OnnxModels");
+        // private static readonly string modelsDirectory = Path.Combine(Environment.CurrentDirectory, @"ML\OnnxModels");
 
 
-
+        /*
         private void LoadModel()
         {
             // Check for an Onnx model exported from Custom Vision
@@ -107,7 +108,7 @@ namespace AnalyticServiceProto
 
 
 
-
+        */
 
 
 
@@ -133,7 +134,12 @@ namespace AnalyticServiceProto
 
 
             // Test Parameters 
-            Item _newItem = Configuration.Instance.GetItem(new Guid("d198ae21-1aba-48fa-83d5-f0aa191439f9"), new Guid("5135ba21-f1dc-4321-806a-6ce2017343c0"));
+            //Item _newItem = Configuration.Instance.GetItem(new Guid("d198ae21-1aba-48fa-83d5-f0aa191439f9"), new Guid("5135ba21-f1dc-4321-806a-6ce2017343c0"));
+            Item _newItem = Configuration.Instance.GetItem(new Guid("D198AE21-1ABA-48FA-83D5-F0AA191439F9"), new Guid("5135ba21-f1dc-4321-806a-6ce2017343c0"));
+            //Item _newItem = Configuration.Instance.GetItem(new Guid("DD826D1C-E703-4FED-8124-7D67ECEAA317"), new Guid("5135ba21-f1dc-4321-806a-6ce2017343c0"));
+
+
+
             OpenStream(_newItem);
 
             blobCounter = new BlobCounter();
@@ -259,9 +265,17 @@ namespace AnalyticServiceProto
         /// <param name="sender"></param>
         /// <param name="e"></param>
         /// 
-
+        int counter = 0;
         Bitmap background2 = null;
         Bitmap foreground = null;
+
+
+        Grayscale gfilter = new Grayscale(0.2125, 0.7154, 0.0721);
+        Bitmap grayImage = null;
+        Bitmap background = null;
+
+
+
         private void JpegLiveSource1LiveNotificationEvent(object sender, EventArgs e)
         {
             if (this.InvokeRequired)
@@ -318,15 +332,7 @@ namespace AnalyticServiceProto
 
 
 
-                        textBoxRx.Text = rx.ToString();
-                        textBoxRy.Text = ry.ToString();
-                        textBoxRz.Text = rz.ToString();
-
-                        textBoxPx.Text = px.ToString();
-                        textBoxPy.Text = py.ToString();
-                        textBoxPz.Text = pz.ToString();
-
-                        textBoxStep.Text = step.ToString();
+                     
 
                         ms.Close();
                         ms.Dispose();
@@ -336,18 +342,28 @@ namespace AnalyticServiceProto
 
                         args.LiveContent.Dispose();
 
-                        Grayscale gfilter = new Grayscale(0.2125, 0.7154, 0.0721);
-                        Bitmap grayImage = gfilter.Apply(newBitmap);
+
+
+                        /// Star processing frame
+                        grayImage = gfilter.Apply(newBitmap);
                         pictureBoxGray.Image = grayImage;
 
                         try
                         {
 
+
+                            if (counter == 4000)
+                            {
+                                counter = 0;
+                                background = null;
+                                analyticsImageProcessing.resetBackground();
+                            }
+
                             if (background == null)
                             {
                                 background = analyticsImageProcessing.GetBackGound(grayImage);
 
-
+                                /// Show mensaje 
                                 Bitmap bitmap = new Bitmap(320, 240);
                                 Graphics g = Graphics.FromImage(bitmap);
                                 g.FillRectangle(System.Drawing.Brushes.Black, 0, 0, bitmap.Width, bitmap.Height);
@@ -355,94 +371,94 @@ namespace AnalyticServiceProto
                                 g.Dispose();
                                 pictureBoxBackgound.Image = new Bitmap(bitmap, pictureBoxOriginal.Size);
                                 bitmap.Dispose();
-
-
-                            }
-
-                            else if (background2 == null)
-                            {
-                                unmanagedImage = UnmanagedImage.FromManagedImage(background);
-                                background2 = gfilter.Apply(background);
-                                pictureBoxBackgound.Image = background;
                             }
                             else
                             {
+                                pictureBoxBackgound.Image = background;
+                                background2 = gfilter.Apply(background);
 
-                                foreground = analyticsImageProcessing.diff(grayImage, background2);
+                                Bitmap backgroundMask = analyticsImageProcessing.diff(grayImage, background2);
+                                pictureBox1.Image = backgroundMask;
 
-                                Threshold filter = new Threshold(100);
+                          
+                                // create filter
+                             //   Median filter = new Median();
                                 // apply the filter
-                                filter.ApplyInPlace(foreground);
+                             //   Bitmap backgroundMask2 = filter.Apply(backgroundMask);
+
+                           //     pictureBox2.Image = backgroundMask2;
 
                                 // create filter
-
-                             //   short[,] se = { { 5, 5 } }; 
-                                Dilatation dfilter = new Dilatation();
+                                Pixellate pxfilter = new Pixellate(20);
                                 // apply the filter
+                                Bitmap result = pxfilter.Apply(backgroundMask);
+                         //      pictureBox3.Image = result;
 
-                                dfilter.ApplyInPlace(foreground);
-                                dfilter.ApplyInPlace(foreground);
-                                dfilter.ApplyInPlace(foreground);
-                                dfilter.ApplyInPlace(foreground);
-                                dfilter.ApplyInPlace(foreground);
+                                // create filter
+                                Threshold thfilter = new Threshold(1);
+                                // apply the filter
+                                Bitmap result2 = thfilter.Apply(result);
 
-                                pictureBoxProcessed.Image = foreground;
+                                pictureBox4.Image = result2;
 
-
-
+                                ApplyMask appmask = new ApplyMask(result2);
+                                foreground = appmask.Apply(newBitmap);
                             }
-
 
 
                             /// PocessImage
-                            if (foreground != null) { 
-                            Blob[] blobs = analyticsImageProcessing.GetBlobs(foreground, blobCounter);
-                            textBoxMetadata.Text = metadataHandler.SendMetadataBox(blobs, _jpegLiveSource.Width, _jpegLiveSource.Height);
-                            PaintHeatMap(blobs);
+                            if (foreground != null)
+                            {
+                                Blob[] blobs = analyticsImageProcessing.GetBlobs(foreground, blobCounter);
+                                textBoxMetadata.Text = metadataHandler.SendMetadataBox(blobs, _jpegLiveSource.Width, _jpegLiveSource.Height);
+                                PaintHeatMap(blobs);
                                 pictureBoxHeatmap.Image = bitmapHeatMap;
 
+                                /// Debug tool
 
-                            /// Debug tool
 
+                                if (blobs[0] != null && blobs.Length > 0)
+                                {
+                                    blobCounter.ExtractBlobsImage(foreground, blobs[0], false);
+                                    pictureBoxBlob1.Image = blobs[0].Image.ToManagedImage();
+                                    textBoxAreaBlob1.Text = blobs[0].Area.ToString();
+                                    textBoxXBlob1.Text = blobs[0].CenterOfGravity.X.ToString();
+                                    textBoxYBlob1.Text = blobs[0].CenterOfGravity.Y.ToString();
+                                }
+                                else pictureBoxBlob1.Image = null;
 
-                                if (blobs[0] != null)
-                            {
-                                blobCounter.ExtractBlobsImage(foreground, blobs[0], false);
-                                pictureBoxBlob1.Image = blobs[0].Image.ToManagedImage();
-                                textBoxAreaBlob1.Text = blobs[0].Area.ToString();
-                                textBoxXBlob1.Text = blobs[0].CenterOfGravity.X.ToString();
-                                textBoxYBlob1.Text = blobs[0].CenterOfGravity.Y.ToString();
+                                if (blobs[1] != null && blobs.Length > 1)
+                                {
+                                    blobCounter.ExtractBlobsImage(foreground, blobs[1], false);
+                                    pictureBoxBlob2.Image = blobs[1].Image.ToManagedImage();
+                                    textBoxAreaBlob2.Text = blobs[1].Area.ToString();
+                                    textBoxXBlob2.Text = blobs[1].CenterOfGravity.X.ToString();
+                                    textBoxYBlob2.Text = blobs[1].CenterOfGravity.Y.ToString();
+
+                                }else pictureBoxBlob2.Image = null;
+
+                                if (blobs[2] != null && blobs.Length > 2)
+                                {
+                                    blobCounter.ExtractBlobsImage(foreground, blobs[2], false);
+                                    pictureBoxBlob3.Image = blobs[2].Image.ToManagedImage();
+                                    textBoxAreaBlob3.Text = blobs[2].Area.ToString();
+                                    textBoxXBlob3.Text = blobs[2].CenterOfGravity.X.ToString();
+                                    textBoxYBlob3.Text = blobs[2].CenterOfGravity.Y.ToString();
+
+                                }else 
+                                pictureBoxBlob3.Image = null;
+
+                                if (blobs[3] != null && blobs.Length > 3)
+                                {
+                                    blobCounter.ExtractBlobsImage(foreground, blobs[3], false);
+                                    pictureBoxBlob4.Image = blobs[3].Image.ToManagedImage();
+                                    textBoxAreaBlob4.Text = blobs[3].Area.ToString();
+                                    textBoxXBlob4.Text = blobs[3].CenterOfGravity.X.ToString();
+                                    textBoxYBlob4.Text = blobs[3].CenterOfGravity.Y.ToString();
+                                }
+                                else pictureBoxBlob4.Image = null;
                             }
 
-                            if (blobs[1] != null)
-                            {
-                                blobCounter.ExtractBlobsImage(foreground, blobs[1], false);
-                                pictureBoxBlob2.Image = blobs[1].Image.ToManagedImage();
-                                textBoxAreaBlob2.Text = blobs[1].Area.ToString();
-                                textBoxXBlob2.Text = blobs[1].CenterOfGravity.X.ToString();
-                                textBoxYBlob2.Text = blobs[1].CenterOfGravity.Y.ToString();
-
-                            }
-
-                            if (blobs[2] != null)
-                            {
-                                blobCounter.ExtractBlobsImage(foreground, blobs[2], false);
-                                pictureBoxBlob3.Image = blobs[2].Image.ToManagedImage();
-                                textBoxAreaBlob3.Text = blobs[2].Area.ToString();
-                                textBoxXBlob3.Text = blobs[2].CenterOfGravity.X.ToString();
-                                textBoxYBlob3.Text = blobs[2].CenterOfGravity.Y.ToString();
-
-                            }
-
-                            if (blobs[3] != null)
-                            {
-                                blobCounter.ExtractBlobsImage(foreground, blobs[3], false);
-                                pictureBoxBlob4.Image = blobs[3].Image.ToManagedImage();
-                                textBoxAreaBlob4.Text = blobs[3].Area.ToString();
-                                textBoxXBlob4.Text = blobs[3].CenterOfGravity.X.ToString();
-                                textBoxYBlob4.Text = blobs[3].CenterOfGravity.Y.ToString();
-                            }
-                            }
                         }
                         catch (Exception r)
                         {
@@ -517,7 +533,7 @@ namespace AnalyticServiceProto
             }
 
         }
-
+        /*
         private void ParseFrame(Bitmap bitmap)
         {
             if (customVisionPredictionEngine == null && tinyYoloPredictionEngine == null)
@@ -529,7 +545,7 @@ namespace AnalyticServiceProto
             DrawOverlays(bitmap, filteredBoxes, pictureBoxGray.Height, pictureBoxGray.Width);
 
         }
-
+        */
 
 
 
@@ -562,7 +578,7 @@ namespace AnalyticServiceProto
             }
             pictureBoxGray.Image = bitmap;
         }
-
+        /*
 
         public List<OnnxObjectDetection.BoundingBox> DetectObjectsUsingModel(ImageInputData imageInputData)
         {
@@ -571,7 +587,7 @@ namespace AnalyticServiceProto
             var filteredBoxes = outputParser.FilterBoundingBoxes(boundingBoxes, 5, 0.5f);
             return filteredBoxes;
         }
-
+        */
 
 
 
@@ -693,137 +709,13 @@ namespace AnalyticServiceProto
 
 
 
-        OpenGL gl;
-        private Bitmap background;
+      
 
-        private void draw3d(int width, int height, int[,] matrix)
+        private void buttonResetBackground_Click(object sender, EventArgs e)
         {
-            //  Get the OpenGL object, just to clean up the code.
-
-            gl = this.openGLControl1.OpenGL;
-            gl.Clear(OpenGL.GL_COLOR_BUFFER_BIT | OpenGL.GL_DEPTH_BUFFER_BIT);  // Clear The Screen And The Depth Buffer
-            gl.LoadIdentity();                  // Reset The View
-
-
-            gl.Translate(px, py, pz);               // Move Left And Into The Screen
-            gl.Rotate(rx, ry, rz);
-            //  gl.Begin(OpenGL.GL_LINES);               
-            gl.Begin(OpenGL.GL_POINTS);
-            //gl.Begin(OpenGL.GL_TRIANGLES);              
-            // gl.Begin(OpenGL.GL_QUADS);
-
-
-            for (int x = 0; x < width; x += step)
-            {
-                for (int y = 0; y < height; y += step)
-                {
-                    float inte = matrix[x, y] / 255f;
-                    gl.Color(inte, inte, inte);
-
-                    //     gl.Vertex(x / 200f, y / 200f, 0);
-                    gl.Vertex(x / 200f, y / 200f, -inte);
-
-                }
-            }
-            gl.End();
-
-            gl.Flush();
-
-
-        }
-        private void redraw()
-        {
-            draw3d(unmanagedImage.Width, unmanagedImage.Height, matrix);
-
-        }
-
-
-        private void button9_Click(object sender, EventArgs e)
-        {
-            rx--;
-            redraw();
-        }
-
-        private void button7_Click(object sender, EventArgs e)
-        {
-            ry--;
-            redraw();
-        }
-
-        private void button2_Click(object sender, EventArgs e)
-        {
-            rz--;
-            redraw();
-        }
-
-        private void HeatMapPluginService_Load(object sender, EventArgs e)
-        {
-
-        }
-
-        private void button8_Click(object sender, EventArgs e)
-        {
-            rx++;
-            redraw();
-        }
-
-        private void button6_Click(object sender, EventArgs e)
-        {
-            ry++;
-            redraw();
-        }
-
-        private void button5_Click(object sender, EventArgs e)
-        {
-            rz++;
-            redraw();
-        }
-
-        private void button11_Click(object sender, EventArgs e)
-        {
-            px -= 0.2f;
-        }
-
-        private void button10_Click(object sender, EventArgs e)
-        {
-            py -= 0.2f;
-            redraw();
-        }
-
-        private void button3_Click(object sender, EventArgs e)
-        {
-            pz -= 0.2f;
-            redraw();
-        }
-
-        private void button13_Click(object sender, EventArgs e)
-        {
-            px += 0.2f;
-            redraw();
-        }
-
-        private void button12_Click(object sender, EventArgs e)
-        {
-            py += 0.2f;
-            redraw();
-        }
-
-        private void button4_Click(object sender, EventArgs e)
-        {
-            pz += 0.2f;
-            redraw();
-        }
-
-        private void button14_Click(object sender, EventArgs e)
-        {
-            step++;
-            redraw();
-        }
-
-        private void button15_Click(object sender, EventArgs e)
-        {
-            if (step > 1) step--;
-            redraw();
+            counter = 0;
+            background = null;
+            analyticsImageProcessing.resetBackground();
         }
     }
 

@@ -15,90 +15,18 @@ namespace AnalyticServiceProto
 
         /// Image Process
 
-        // background and previous frames
-        private UnmanagedImage backgroundFrame = null;
-        private UnmanagedImage currentFrame = null;
-        private UnmanagedImage motionObjectsImage = null;
-
-
-        // filters used to do image processing
-        private Difference differenceFilter = new Difference();
-        private Threshold thresholdFilter = new Threshold(25);
-        private Opening openingFilter = new Opening();
-        private int backgoundMantainance = 10;
-
-        public Bitmap ProcessImage(Bitmap image)
-        {
-
-            // save image dimension
-            int width = image.Width;
-            int height = image.Height;
-
-            if (backgoundMantainance++ == 10)
-            {
-                backgroundFrame = null;
-                backgoundMantainance = 0;
-            }
-            if (backgroundFrame == null)
-            {
-
-
-                // create initial backgroung image
-                BitmapData bitmapDataBackGround = image.LockBits(
-                            new System.Drawing.Rectangle(0, 0, width, height),
-                            ImageLockMode.ReadOnly, PixelFormat.Format24bppRgb);
-                // apply grayscale filter getting unmanaged image
-                backgroundFrame = Grayscale.CommonAlgorithms.BT709.Apply(new UnmanagedImage(bitmapDataBackGround));
-                // unlock source image
-                image.UnlockBits(bitmapDataBackGround);
-            }
-
-            // preallocate some images
-            currentFrame = UnmanagedImage.Create(width, height, PixelFormat.Format8bppIndexed);
-            motionObjectsImage = UnmanagedImage.Create(width, height, PixelFormat.Format8bppIndexed);
-
-            // lock source image
-            BitmapData bitmapData = image.LockBits(
-                    new System.Drawing.Rectangle(0, 0, width, height),
-                    ImageLockMode.ReadOnly, PixelFormat.Format24bppRgb);
-
-            // apply the grayscale filter
-            Grayscale.CommonAlgorithms.BT709.Apply(new UnmanagedImage(bitmapData), currentFrame);
-
-            // unlock source image
-            image.UnlockBits(bitmapData);
-
-
-            // set backgroud frame as an overlay for difference filter
-            differenceFilter.UnmanagedOverlayImage = backgroundFrame;
-
-            // // apply difference filter
-            differenceFilter.Apply(currentFrame, motionObjectsImage);
-
-            // // apply threshold filter
-            thresholdFilter.ApplyInPlace(motionObjectsImage);
-
-            // // apply opening filter to remove noise
-            openingFilter.ApplyInPlace(motionObjectsImage);
-
-
-
-
-            return motionObjectsImage.ToManagedImage();
-        }
-
-
-
-
-
         public Bitmap diff(Bitmap frame, Bitmap background)
         {
-            UnmanagedImage unmanagedframe = UnmanagedImage.FromManagedImage(frame);
-            UnmanagedImage unmanagedbackground = UnmanagedImage.FromManagedImage(background);
 
-            differenceFilter.UnmanagedOverlayImage = unmanagedbackground;
-            // // apply difference filter
-            return differenceFilter.Apply(unmanagedframe).ToManagedImage();
+            // create filter
+
+
+            ThresholdedDifference filter = new ThresholdedDifference(60);
+            // apply the filter
+            filter.OverlayImage = background;
+            return filter.Apply(frame);
+
+
         }
 
         public Blob[] GetBlobs(Bitmap image, BlobCounter blobCounter)
@@ -106,34 +34,42 @@ namespace AnalyticServiceProto
 
             // process blobs
             blobCounter.FilterBlobs = true;
-            blobCounter.MaxHeight = 150;
-            blobCounter.MaxWidth = 150;
+            blobCounter.MinHeight = 10;
+            blobCounter.MinWidth = 10;
+            blobCounter.MaxHeight = 250;
+            blobCounter.MaxWidth = 250;
 
             blobCounter.ProcessImage(image);
             Blob[] blobs = blobCounter.GetObjectsInformation();
-            blobCounter.ObjectsOrder = ObjectsOrder.Size;
+            blobCounter.ObjectsOrder = ObjectsOrder.XY;
 
             return blobs;
         }
 
 
-        static int no = 120;
-        Bitmap[] lastFrames = new Bitmap[no];
-        int contador = 0;
-        bool full = false;
-        int[,] matrixAvg = null;
+
+
+
+
+
+        internal void resetBackground()
+        {
+            lastFrames = new Bitmap[no];
+            tempMatrix = null;
+            full = false; 
+            i = 0;
+        }
+
 
         int i = 0;
+        int[,][] tempMatrix = null;
+        static int no = 240;
+        Bitmap[] lastFrames = new Bitmap[no];
+        bool full = false;
+
         internal Bitmap GetBackGound(Bitmap newBitmap)
         {
-              if (contador++ == 240)
-              {
-                  lastFrames = new Bitmap[no];
-                  full = false; matrixAvg = null;
-                  contador = 0;
-                  i = 0;
-              }
-            
+
             if (!full)
             {
                 lastFrames[i++] = newBitmap;
@@ -141,62 +77,65 @@ namespace AnalyticServiceProto
 
             if (i == no) full = true;
 
-
-            if (full && matrixAvg == null)
+            if (full && tempMatrix == null)
             {
-                UnmanagedImage unmanagedImage = UnmanagedImage.FromManagedImage(lastFrames[0]);
-                matrixAvg = GetMatrix(unmanagedImage);
+                tempMatrix = new int[newBitmap.Width, newBitmap.Height][];
 
-
-
-
-
-
-
-
-                for (int t = 1; t < no; t++)
+                for (int row = 0; row < tempMatrix.GetLength(0); row++)
                 {
+                    for (int col = 0; col < tempMatrix.GetLength(1); col++)
+                    {
+                        tempMatrix[row, col] = new int[no];
+                    }
+                }
 
-                    unmanagedImage = UnmanagedImage.FromManagedImage(lastFrames[t]);
-                    int[,] matrix = GetMatrix(unmanagedImage);
+                for (int t = 0; t < no; t++)
+                {
+                    int[,] matrix = GetMatrix(UnmanagedImage.FromManagedImage(lastFrames[t]));
 
                     for (int row = 0; row < matrix.GetLength(0); row++)
                     {
                         for (int col = 0; col < matrix.GetLength(1); col++)
                         {
-
-
-                            matrixAvg[row, col] = (matrixAvg[row, col] + matrix[row, col]);
+                            tempMatrix[row, col][t] = matrix[row, col];
                         }
                     }
                 }
+            }
 
-
-                for (int row = 0; row < matrixAvg.GetLength(0); row++)
+            if (tempMatrix != null)
+            {
+                int[,] medianMatrix = new int[tempMatrix.GetLength(0), tempMatrix.GetLength(1)];
+                for (int row = 0; row < tempMatrix.GetLength(0); row++)
                 {
-                    for (int col = 0; col < matrixAvg.GetLength(1); col++)
+                    for (int col = 0; col < tempMatrix.GetLength(1); col++)
                     {
-
-
-                        matrixAvg[row, col] = matrixAvg[row, col] / no;
+                        medianMatrix[row, col] = GetMedian(tempMatrix[row, col]);
                     }
                 }
-
+                tempMatrix = null;
+                return DrawGrayScaleMatrix(medianMatrix);
             }
-
-            if (matrixAvg != null)
-            {
-                return DrawGrayScaleMatrix(matrixAvg);
-            }
-
-
 
             return null;
         }
 
+        public static int GetMedian(int[] sourceNumbers)
+        {
+            //Framework 2.0 version of this method. there is an easier way in F4        
+            if (sourceNumbers == null || sourceNumbers.Length == 0)
+                throw new System.Exception("Median of empty array not defined.");
 
+            //make sure the list is sorted, but use a new array
+            int[] sortedPNumbers = (int[])sourceNumbers.Clone();
+            Array.Sort(sortedPNumbers);
 
-
+            //get the median
+            int size = sortedPNumbers.Length;
+            int mid = size / 2;
+            int median = (size % 2 != 0) ? (int)sortedPNumbers[mid] : ((int)sortedPNumbers[mid] + (int)sortedPNumbers[mid - 1]) / 2;
+            return median;
+        }
 
         public Bitmap DrawGrayScaleMatrix(int[,] matrix)
         {
